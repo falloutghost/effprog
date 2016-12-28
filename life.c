@@ -1,5 +1,13 @@
+#include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
 #include "life.h"
 
 FILE *infile;
@@ -47,7 +55,7 @@ Celllist *checkcell(long x, long y, Celllist *old, Celllist *new)
     return newcell(x,y,new);
   else if (n==2 && alive(x,y,old))
     return newcell(x,y,new);
-  else 
+  else
     return new;
 }
 
@@ -83,12 +91,53 @@ void freecelllist(Celllist *l)
 
 Celllist *readlife(FILE *f)
 {
-  infile = f;
-  if (yyparse() != 0) {
-    fprintf(stderr, "syntax error");
+  struct stat sb;
+  int fd;
+  long x, y;
+  char *s, *end;
+
+  Celllist *list = NULL;
+
+  fd = fileno(f);
+
+  // get file size
+  if (fstat(fd, &sb) == -1) {
+    perror("fstat");
     exit(1);
   }
-  return gen0;
+
+  // map file into memory
+  s = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fileno(f), 0);
+
+  // TODO: skip header, see readlife.y
+
+  // read cells of input file
+  end = s + sb.st_size;
+  while (s < end) {
+    char *endptr;
+
+    while (*s == ' ') s++;
+    x = strtol(s, &endptr, 10);
+    if (s == endptr) {
+      perror("strtol");
+      exit(1);
+    }
+    s = endptr;
+
+    while (*s == ' ') s++;
+    y = strtol(s, &endptr, 10);
+    if (s == endptr) {
+      perror("strtol");
+      exit(1);
+    }
+    s = endptr;
+
+    list = newcell(x, y, list);
+
+    while (*s == ' ' || *s == '\n') s++;
+  }
+
+  return list;
 }
 
 void writelife(FILE *f, Celllist *l)
