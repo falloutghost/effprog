@@ -1,0 +1,5 @@
+#!/bin/sh
+#Usage: showlife <file |gs
+echo '['
+awk '{print "{"$0"}"}'
+cat showlife.ps

@@ -1,0 +1,27 @@
+% [ {x0 y0} {x1 y1} ...
+] /gen exch def
+/drop {pop} def
+/swap {exch} def
+/over {1 index} def
+/nip {swap drop} def
+/rot {3 -1 roll} def
+/2dup {2 copy} def
+/min {2dup gt {exch} if pop} def
+/max {2dup lt {exch} if pop} def
+
+/xleft 30 def
+/xright 566 def
+/ybottom 30 def
+/ytop 812 def
+/minx  999999999 gen {0 get min} forall def
+/maxx -999999999 gen {0 get max} forall def
+/miny  999999999 gen {1 get min} forall def
+/maxy -999999999 gen {1 get max} forall def
+xleft ybottom translate
+xright xleft sub maxx minx sub div
+ytop ybottom sub maxy miny sub div min dup scale
+minx neg miny neg pstack translate
+% x y --
+/cell {exec moveto 0 1 rlineto 1 0 rlineto 0 -1 rlineto fill} def
+gen {cell} forall
+showpage
