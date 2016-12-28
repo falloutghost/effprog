@@ -1,3 +1,5 @@
+life
+*.o
 *.gcno
 *.gcda
 *.info
