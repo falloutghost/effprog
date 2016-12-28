@@ -1,0 +1,5 @@
+*.gcno
+*.gcda
+*.info
+lcov_results
+oprofile_data
