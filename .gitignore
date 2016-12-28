@@ -4,3 +4,4 @@ life
 *.gcda
 *.info
 measurements
+readlife.tab.c
