@@ -12,7 +12,7 @@ readlife.tab.c: readlife.y
 	bison readlife.y
 
 clean:
-	rm -rf life *.o readlife.tab.c effizienz-aufgabe07 *.gcno *.gcda *.info lcov_results
+	rm -rf life *.o readlife.tab.c effizienz-aufgabe07 *.gcno *.gcda *.info lcov_results oprofile_data
 
 effizienz-aufgabe07.tar.gz: $(SOURCES) $(GEN)
 	-rm -rf effizienz-aufgabe07
