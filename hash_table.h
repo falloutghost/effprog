@@ -188,6 +188,13 @@ hash_table_val_t
 hash_table_iterator_get_value(hash_table_iter *iter);
 
 /**
+ * Removes all entries currently present in the hash table.
+ * @param tbl a pointer to the hash table instance.
+ */
+void
+hash_table_clear(hash_table *tbl);
+
+/**
  * Destroys a hash table created by hash_table_create().
  * @param tbl a pointer to the hash table instance.
  */

@@ -58,6 +58,17 @@ main(int argc, char *argv[])
         printf("%s = %s\n", key, val);
     }
 
+    hash_table_clear(tbl);
+
+    printf("Dumping hash table content ::\n");
+    hash_table_iterator_init(tbl, &iter);
+    while (hash_table_iterator_has_next(&iter)) {
+        hash_table_iterator_next(&iter);
+        key = (char *)hash_table_iterator_get_key(&iter);
+        val = (char *)hash_table_iterator_get_value(&iter);
+        printf("%s = %s\n", key, val);
+    }
+
     hash_table_destroy(tbl);
 
     return EXIT_SUCCESS;
