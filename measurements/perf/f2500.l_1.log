@@ -1,0 +1,10 @@
+DEBUG: hash table size: 4603
+DEBUG: list size: 4603
+4600 cells alive
+
+ Performance counter stats for './life 1':
+
+    15.436.346.948      cycles                                                      
+
+       4,735924933 seconds time elapsed
+

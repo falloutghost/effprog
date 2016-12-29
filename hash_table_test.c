@@ -51,6 +51,7 @@ main(int argc, char *argv[])
 
     hash_table_remove(tbl, "a");
     hash_table_remove(tbl, "c");
+    hash_table_remove(tbl, "z"); // doesn't exist
 
     printf("Dumping hash table content ::\n");
     hash_table_iterator_init(tbl, &iter);

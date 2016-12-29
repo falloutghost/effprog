@@ -1,0 +1,299 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - life_test.info - effprog/life.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">effprog</a> - life.c<span style="font-size: 80%;"> (source / <a href="life.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">life_test.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">99</td>
+            <td class="headerCovTableEntry">112</td>
+            <td class="headerCovTableEntryMed">88.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2016-12-29 18:08:51</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &lt;errno.h&gt;</a>
+<span class="lineNum">       2 </span>            : #include &lt;fcntl.h&gt;
+<span class="lineNum">       3 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">       4 </span>            : #include &lt;stdio.h&gt;
+<span class="lineNum">       5 </span>            : #include &lt;string.h&gt;
+<span class="lineNum">       6 </span>            : #include &lt;sys/types.h&gt;
+<span class="lineNum">       7 </span>            : #include &lt;sys/stat.h&gt;
+<span class="lineNum">       8 </span>            : #include &lt;sys/mman.h&gt;
+<span class="lineNum">       9 </span>            : #include &lt;unistd.h&gt;
+<span class="lineNum">      10 </span>            : 
+<span class="lineNum">      11 </span>            : #include &quot;hash_table.h&quot;
+<span class="lineNum">      12 </span>            : #include &quot;life.h&quot;
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : FILE *infile;
+<span class="lineNum">      15 </span>            : Celllist *gen0;
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            : hash_table *hash_tbl;
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<span class="lineNum">      19 </span>            : static unsigned int
+<span class="lineNum">      20 </span><span class="lineCov">      19589 : hash_point(void *val)</span>
+<span class="lineNum">      21 </span>            : {
+<span class="lineNum">      22 </span><span class="lineCov">      19589 :   Point *p = (Point *)val;</span>
+<span class="lineNum">      23 </span><span class="lineCov">      19589 :   return hash_long(&amp;p-&gt;x) + hash_long(&amp;p-&gt;y);</span>
+<span class="lineNum">      24 </span>            : }
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<span class="lineNum">      26 </span>            : static int
+<span class="lineNum">      27 </span><span class="lineCov">      51935 : hash_point_cmp(void *val1, void *val2)</span>
+<span class="lineNum">      28 </span>            : {
+<span class="lineNum">      29 </span><span class="lineCov">      51935 :   Point *p1 = (Point *)val1;</span>
+<span class="lineNum">      30 </span><span class="lineCov">      51935 :   Point *p2 = (Point *)val2;</span>
+<span class="lineNum">      31 </span><span class="lineCov">      51935 :   return ((p1-&gt;x - p2-&gt;x) == 0) ? (p1-&gt;y - p2-&gt;y) : (p1-&gt;x - p2-&gt;x);</span>
+<a name="32"><span class="lineNum">      32 </span>            : }</a>
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span><span class="lineCov">    1269467 : long alive(long x, long y, Celllist *l)</span>
+<span class="lineNum">      35 </span>            : {
+<span class="lineNum">      36 </span>            :   /*fprintf(stderr,&quot;alive x=%ld y=%ld l=%p&quot;,x,y,l);*/
+<span class="lineNum">      37 </span><span class="lineCov"> 3721387298 :   for (; l; l = l-&gt;next) {</span>
+<span class="lineNum">      38 </span>            :     /* fprintf(stderr,&quot;alive x=%ld y=%ld l=(%ld,%ld)&quot;,x,y,l-&gt;x, l-&gt;y);*/
+<span class="lineNum">      39 </span><span class="lineCov"> 3720503107 :     if (x==l-&gt;x &amp;&amp; y==l-&gt;y) {</span>
+<span class="lineNum">      40 </span>            :       /*fprintf(stderr,&quot;=1\n&quot;);*/
+<span class="lineNum">      41 </span>            :       return 1;
+<span class="lineNum">      42 </span>            :     }
+<span class="lineNum">      43 </span>            :   }
+<span class="lineNum">      44 </span>            :   /*fprintf(stderr,&quot;=0\n&quot;);*/
+<span class="lineNum">      45 </span>            :   return 0;
+<a name="46"><span class="lineNum">      46 </span>            : }</a>
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span><span class="lineCov">      39313 : Celllist *newcell(long x, long y, Celllist *l)</span>
+<span class="lineNum">      49 </span>            : {
+<span class="lineNum">      50 </span><span class="lineCov">      39313 :   Celllist *c = malloc(sizeof(Celllist));</span>
+<span class="lineNum">      51 </span>            :   /*fprintf(stderr,&quot;newcell x=%ld y=%ld\n&quot;,x,y);*/
+<span class="lineNum">      52 </span><span class="lineCov">      39313 :   c-&gt;x = x;</span>
+<span class="lineNum">      53 </span><span class="lineCov">      39313 :   c-&gt;y = y;</span>
+<span class="lineNum">      54 </span><span class="lineCov">      39313 :   c-&gt;next = l;</span>
+<span class="lineNum">      55 </span><span class="lineCov">      39313 :   return c;</span>
+<a name="56"><span class="lineNum">      56 </span>            : }</a>
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineCov">     176301 : Celllist *checkcell(long x, long y, Celllist *old, Celllist *new)</span>
+<span class="lineNum">      59 </span>            : {
+<span class="lineNum">      60 </span><span class="lineCov">     176301 :   int n=0;</span>
+<span class="lineNum">      61 </span><span class="lineCov">     176301 :   if (alive(x,y,new))</span>
+<span class="lineNum">      62 </span>            :     return new;
+<span class="lineNum">      63 </span><span class="lineCov">     130032 :   n += alive(x-1, y-1, old);</span>
+<span class="lineNum">      64 </span><span class="lineCov">     130032 :   n += alive(x-1, y+0, old);</span>
+<span class="lineNum">      65 </span><span class="lineCov">     130032 :   n += alive(x-1, y+1, old);</span>
+<span class="lineNum">      66 </span><span class="lineCov">     130032 :   n += alive(x+0, y-1, old);</span>
+<span class="lineNum">      67 </span><span class="lineCov">     130032 :   n += alive(x+0, y+1, old);</span>
+<span class="lineNum">      68 </span><span class="lineCov">     130032 :   n += alive(x+1, y-1, old);</span>
+<span class="lineNum">      69 </span><span class="lineCov">     130032 :   n += alive(x+1, y+0, old);</span>
+<span class="lineNum">      70 </span><span class="lineCov">     130032 :   n += alive(x+1, y+1, old);</span>
+<span class="lineNum">      71 </span>            :   /*fprintf(stderr,&quot;checkcell x=%ld y=%ld old=%p new=%p n=%d\n&quot;,x,y,old,new,n);*/
+<span class="lineNum">      72 </span><span class="lineCov">     130032 :   if (n==3)</span>
+<span class="lineNum">      73 </span><span class="lineCov">      12910 :     return newcell(x,y,new);</span>
+<span class="lineNum">      74 </span><span class="lineCov">     117122 :   else if (n==2 &amp;&amp; alive(x,y,old))</span>
+<span class="lineNum">      75 </span><span class="lineCov">       6814 :     return newcell(x,y,new);</span>
+<span class="lineNum">      76 </span>            :   else
+<span class="lineNum">      77 </span>            :     return new;
+<a name="78"><span class="lineNum">      78 </span>            : }</a>
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span><span class="lineCov">          8 : Celllist *onegeneration(Celllist *old)</span>
+<span class="lineNum">      81 </span>            : {
+<span class="lineNum">      82 </span><span class="lineCov">          8 :   Celllist *new = NULL;</span>
+<span class="lineNum">      83 </span>            :   Celllist *l;
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span><span class="lineCov">      19597 :   for (l=old; l; l = l-&gt;next) {</span>
+<span class="lineNum">      86 </span><span class="lineCov">      19589 :     long x = l-&gt;x;</span>
+<span class="lineNum">      87 </span><span class="lineCov">      19589 :     long y = l-&gt;y;</span>
+<span class="lineNum">      88 </span><span class="lineCov">      19589 :     new = checkcell(x-1, y-1, old, new);</span>
+<span class="lineNum">      89 </span><span class="lineCov">      19589 :     new = checkcell(x-1, y+0, old, new);</span>
+<span class="lineNum">      90 </span><span class="lineCov">      19589 :     new = checkcell(x-1, y+1, old, new);</span>
+<span class="lineNum">      91 </span><span class="lineCov">      19589 :     new = checkcell(x+0, y-1, old, new);</span>
+<span class="lineNum">      92 </span><span class="lineCov">      19589 :     new = checkcell(x+0, y+0, old, new);</span>
+<span class="lineNum">      93 </span><span class="lineCov">      19589 :     new = checkcell(x+0, y+1, old, new);</span>
+<span class="lineNum">      94 </span><span class="lineCov">      19589 :     new = checkcell(x+1, y-1, old, new);</span>
+<span class="lineNum">      95 </span><span class="lineCov">      19589 :     new = checkcell(x+1, y+0, old, new);</span>
+<span class="lineNum">      96 </span><span class="lineCov">      19589 :     new = checkcell(x+1, y+1, old, new);</span>
+<span class="lineNum">      97 </span>            :   }
+<span class="lineNum">      98 </span><span class="lineCov">          8 :   return new;</span>
+<a name="99"><span class="lineNum">      99 </span>            : }</a>
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span><span class="lineCov">          8 : void freecelllist(Celllist *l)</span>
+<span class="lineNum">     102 </span>            : {
+<span class="lineNum">     103 </span><span class="lineCov">      19605 :   while (l) {</span>
+<span class="lineNum">     104 </span><span class="lineCov">      19589 :     Celllist *old = l;</span>
+<span class="lineNum">     105 </span><span class="lineCov">      19589 :     l = l-&gt;next;</span>
+<span class="lineNum">     106 </span><span class="lineCov">      19589 :     free(old);</span>
+<span class="lineNum">     107 </span>            :   }
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">          8 : }</span></a>
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span><span class="lineCov">          8 : Celllist *readlife(FILE *f)</span>
+<span class="lineNum">     111 </span>            : {
+<span class="lineNum">     112 </span>            :   struct stat sb;
+<span class="lineNum">     113 </span>            :   int fd;
+<span class="lineNum">     114 </span>            :   long x, y;
+<span class="lineNum">     115 </span>            :   char *begin, *s, *end;
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span><span class="lineCov">          8 :   Celllist *list = NULL;</span>
+<span class="lineNum">     118 </span><span class="lineCov">          8 :   Cell *c = NULL;</span>
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span><span class="lineCov">          8 :   fd = fileno(f);</span>
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            :   // get file size
+<span class="lineNum">     123 </span><span class="lineCov">          8 :   if (fstat(fd, &amp;sb) == -1) {</span>
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :     perror(&quot;fstat&quot;);</span>
+<span class="lineNum">     125 </span><span class="lineNoCov">          0 :     exit(1);</span>
+<span class="lineNum">     126 </span>            :   }
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span>            :   // map file into memory
+<span class="lineNum">     129 </span><span class="lineCov">          8 :   begin = s = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fileno(f), 0);</span>
+<span class="lineNum">     130 </span>            : 
+<span class="lineNum">     131 </span>            :   // TODO: skip header, see readlife.y
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span>            :   // read cells of input file
+<span class="lineNum">     134 </span><span class="lineCov">          8 :   end = s + sb.st_size;</span>
+<span class="lineNum">     135 </span><span class="lineCov">      19605 :   while (s &lt; end) {</span>
+<span class="lineNum">     136 </span>            :     char *endptr;
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :     while (*s == ' ') s++;</span>
+<span class="lineNum">     139 </span><span class="lineCov">      19589 :     x = strtol(s, &amp;endptr, 10);</span>
+<span class="lineNum">     140 </span><span class="lineCov">      19589 :     if (s == endptr) {</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :       perror(&quot;strtol&quot;);</span>
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :       exit(1);</span>
+<span class="lineNum">     143 </span>            :     }
+<span class="lineNum">     144 </span>            :     s = endptr;
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span><span class="lineCov">      19589 :     while (*s == ' ') s++;</span>
+<span class="lineNum">     147 </span><span class="lineCov">      19589 :     y = strtol(s, &amp;endptr, 10);</span>
+<span class="lineNum">     148 </span><span class="lineCov">      19589 :     if (s == endptr) {</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :       perror(&quot;strtol&quot;);</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :       exit(1);</span>
+<span class="lineNum">     151 </span>            :     }
+<span class="lineNum">     152 </span><span class="lineCov">      19589 :     s = endptr;</span>
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span><span class="lineCov">      19589 :     list = newcell(x, y, list);</span>
+<span class="lineNum">     155 </span>            : 
+<span class="lineNum">     156 </span><span class="lineCov">      19589 :     c = malloc(sizeof(Cell));</span>
+<span class="lineNum">     157 </span><span class="lineCov">      19589 :     if (c == NULL) {</span>
+<span class="lineNum">     158 </span><span class="lineNoCov">          0 :       perror(&quot;malloc&quot;);</span>
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :       exit(1);</span>
+<span class="lineNum">     160 </span>            :     }
+<span class="lineNum">     161 </span><span class="lineCov">      19589 :     c-&gt;coordinates.x = x;</span>
+<span class="lineNum">     162 </span><span class="lineCov">      19589 :     c-&gt;coordinates.y = y;</span>
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span><span class="lineCov">      19589 :     hash_table_put(hash_tbl, &amp;c-&gt;coordinates, c);</span>
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span><span class="lineCov">      19589 :     while (*s == ' ' || *s == '\n') s++;</span>
+<span class="lineNum">     167 </span>            :   }
+<span class="lineNum">     168 </span>            : 
+<span class="lineNum">     169 </span><span class="lineCov">          8 :   munmap(begin, sb.st_size);</span>
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span><span class="lineCov">          8 :   return list;</span>
+<a name="172"><span class="lineNum">     172 </span>            : }</a>
+<span class="lineNum">     173 </span>            : 
+<span class="lineNum">     174 </span><span class="lineCov">          8 : void writelife(FILE *f, Celllist *l)</span>
+<span class="lineNum">     175 </span>            : {
+<span class="lineNum">     176 </span><span class="lineCov">      19732 :   for (; l; l = l-&gt;next)</span>
+<span class="lineNum">     177 </span><span class="lineCov">      39448 :     fprintf(f, &quot;%ld %ld\n&quot;, l-&gt;x, l-&gt;y);</span>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">          8 : }</span></a>
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span><span class="lineCov">         16 : long countcells(Celllist *l)</span>
+<span class="lineNum">     181 </span>            : {
+<span class="lineNum">     182 </span><span class="lineCov">         16 :   long c=0;</span>
+<span class="lineNum">     183 </span><span class="lineCov">      39329 :   for (; l; l = l-&gt;next)</span>
+<span class="lineNum">     184 </span><span class="lineCov">      39313 :     c++;</span>
+<span class="lineNum">     185 </span><span class="lineCov">         16 :   return c;</span>
+<a name="186"><span class="lineNum">     186 </span>            : }</a>
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span><span class="lineCov">          8 : int main(int argc, char **argv)</span>
+<span class="lineNum">     189 </span>            : {
+<span class="lineNum">     190 </span>            :   Celllist *current;
+<span class="lineNum">     191 </span>            :   long generations;
+<span class="lineNum">     192 </span>            :   long i;
+<span class="lineNum">     193 </span>            :   char *endptr;
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span><span class="lineCov">          8 :   if (argc!=2) {</span>
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :     fprintf(stderr, &quot;Usage: %s #generations &lt;startfile | sort &gt;endfile\n&quot;, argv[0]);</span>
+<span class="lineNum">     197 </span><span class="lineNoCov">          0 :     exit(1);</span>
+<span class="lineNum">     198 </span>            :   }
+<span class="lineNum">     199 </span><span class="lineCov">          8 :   generations = strtol(argv[1], &amp;endptr, 10);</span>
+<span class="lineNum">     200 </span><span class="lineCov">          8 :   if (*endptr != '\0') {</span>
+<span class="lineNum">     201 </span><span class="lineNoCov">          0 :     fprintf(stderr, &quot;\&quot;%s\&quot; not a valid generation count\n&quot;, argv[3]);</span>
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :     exit(1);</span>
+<span class="lineNum">     203 </span>            :   }
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span><span class="lineCov">          8 :   hash_tbl = hash_table_create(512, hash_point, hash_point_cmp);</span>
+<span class="lineNum">     206 </span>            : 
+<span class="lineNum">     207 </span><span class="lineCov">          8 :   current = readlife(stdin);</span>
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span><span class="lineCov">         16 :   fprintf(stderr, &quot;DEBUG: hash table size: %d\n&quot;, hash_table_size(hash_tbl));</span>
+<span class="lineNum">     210 </span><span class="lineCov">         16 :   fprintf(stderr, &quot;DEBUG: list size: %ld\n&quot;, countcells(current));</span>
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span><span class="lineCov">         16 :   for (i=0; i&lt;generations; i++) {</span>
+<span class="lineNum">     213 </span><span class="lineCov">          8 :     Celllist *old = current;</span>
+<span class="lineNum">     214 </span><span class="lineCov">          8 :     current = onegeneration(current);</span>
+<span class="lineNum">     215 </span><span class="lineCov">          8 :     freecelllist(old);</span>
+<span class="lineNum">     216 </span>            :   }
+<span class="lineNum">     217 </span><span class="lineCov">          8 :   writelife(stdout, current);</span>
+<span class="lineNum">     218 </span><span class="lineCov">         16 :   fprintf(stderr,&quot;%ld cells alive\n&quot;, countcells(current));</span>
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span><span class="lineCov">          8 :   hash_table_destroy(hash_tbl);</span>
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span>            :   return 0;
+<span class="lineNum">     223 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.11</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
