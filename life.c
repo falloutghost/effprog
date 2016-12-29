@@ -8,10 +8,28 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include "hash_table.h"
 #include "life.h"
 
 FILE *infile;
 Celllist *gen0;
+
+hash_table *hash_tbl;
+
+static unsigned int
+hash_point(void *val)
+{
+  Point *p = (Point *)val;
+  return hash_long(&p->x) + hash_long(&p->y);
+}
+
+static int
+hash_point_cmp(void *val1, void *val2)
+{
+  Point *p1 = (Point *)val1;
+  Point *p2 = (Point *)val2;
+  return ((p1->x - p2->x) == 0) ? (p1->y - p2->y) : (p1->x - p2->x);
+}
 
 long alive(long x, long y, Celllist *l)
 {
@@ -94,9 +112,10 @@ Celllist *readlife(FILE *f)
   struct stat sb;
   int fd;
   long x, y;
-  char *s, *end;
+  char *begin, *s, *end;
 
   Celllist *list = NULL;
+  Cell *c = NULL;
 
   fd = fileno(f);
 
@@ -107,7 +126,7 @@ Celllist *readlife(FILE *f)
   }
 
   // map file into memory
-  s = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fileno(f), 0);
+  begin = s = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fileno(f), 0);
 
   // TODO: skip header, see readlife.y
 
@@ -134,8 +153,20 @@ Celllist *readlife(FILE *f)
 
     list = newcell(x, y, list);
 
+    c = malloc(sizeof(Cell));
+    if (c == NULL) {
+      perror("malloc");
+      exit(1);
+    }
+    c->coordinates.x = x;
+    c->coordinates.y = y;
+
+    hash_table_put(hash_tbl, &c->coordinates, c);
+
     while (*s == ' ' || *s == '\n') s++;
   }
+
+  munmap(begin, sb.st_size);
 
   return list;
 }
@@ -170,7 +201,14 @@ int main(int argc, char **argv)
     fprintf(stderr, "\"%s\" not a valid generation count\n", argv[3]);
     exit(1);
   }
+
+  hash_tbl = hash_table_create(512, hash_point, hash_point_cmp);
+
   current = readlife(stdin);
+
+  fprintf(stderr, "DEBUG: hash table size: %d\n", hash_table_size(hash_tbl));
+  fprintf(stderr, "DEBUG: list size: %ld\n", countcells(current));
+
   for (i=0; i<generations; i++) {
     Celllist *old = current;
     current = onegeneration(current);
@@ -178,5 +216,8 @@ int main(int argc, char **argv)
   }
   writelife(stdout, current);
   fprintf(stderr,"%ld cells alive\n", countcells(current));
+
+  hash_table_destroy(hash_tbl);
+
   return 0;
 }

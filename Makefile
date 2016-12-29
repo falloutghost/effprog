@@ -1,10 +1,12 @@
 CC=gcc
-CFLAGS=-g -O -Wall --coverage
-LDFLAGS=-g -lgcov --coverage
+CFLAGS=-g -O -Wall #--coverage
+LDFLAGS=-g #-lgcov --coverage
 SOURCES=Makefile life.c life.h readlife.y showlife showlife.ps f0.l
 GEN=f0500.l f1000.l f1500.l f2000.l f2500.l f3000.l
 
-life: life.o readlife.tab.o
+hash_table_test: hash_table_test.o hash_table.o
+
+life: life.o readlife.tab.o hash_table.o
 
 readlife.tab.o: readlife.tab.c
 
