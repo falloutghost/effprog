@@ -16,27 +16,28 @@ static hash_table *tbl_gen_next;
 
 // used as hash function for the hash table(s).
 static unsigned int
-hash_point(void *val)
+hash_point(const void *data)
 {
-  Point *p = (Point *)val;
+  Point *p = (Point *)data;
   return hash_long(&p->x) + hash_long(&p->y);
 }
 
 // used as compare function for the hash table(s).
 static int
-hash_point_cmp(void *val1, void *val2)
+hash_point_cmp(const void *a, const void *b)
 {
-  Point *p1 = (Point *)val1;
-  Point *p2 = (Point *)val2;
-  int xdiff = p1->x - p2->x;
-  return (xdiff == 0) ? (p1->y - p2->y) : xdiff;
+  Point *p1 = (Point *)a;
+  Point *p2 = (Point *)b;
+  int dx = p1->x - p2->x;
+  return (dx == 0) ? (p1->y - p2->y) : dx;
 }
 
 // used to free all cell instances put into the hash table(s).
 static void
-hash_table_gen_free(void *key, void *val)
+hash_table_gen_free(hash_table_entry *entry)
 {
-    free(val);
+  free(entry->val);
+  entry->val = NULL;
 }
 
 // Creates a cell instance, allocated on the heap.
@@ -122,7 +123,7 @@ void onegeneration()
   tbl_gen_current = tbl_gen_next;
   tbl_gen_next = tbl_gen_tmp;
 
-  // clean hash table for next generation
+  // clean next generation hash table
   hash_table_map(tbl_gen_next, &hash_table_gen_free);
   hash_table_clear(tbl_gen_next);
 }

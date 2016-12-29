@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 /**
  * Represents an element put into a bucket of the hash table.
@@ -13,10 +14,39 @@ struct hash_table_elem {
      */
     hash_table_entry entry;
     /**
+     * The bucket the element resides in.
+     */
+    size_t bucket_idx;
+    /**
      * a pointer to the next hash element in the bucket.
      */
     hash_table_elem *next;
 };
+
+/**
+ * Checks if a number is a power of two.
+ * @param n the number to check.
+ * @return true if n is a power of two, false otherwise.
+ */
+static int
+is_pow2(size_t n)
+{
+    return n != 0 && (n & (n - 1)) == 0;
+}
+
+/**
+ * Rounds a number to the next power of two.
+ * @param n the number to round.
+ * @return the next power of two greather than n.
+ */
+static size_t
+ceil_pow2(size_t n)
+{
+    while (!is_pow2(n)) {
+        n = (n & (n - 1));
+    }
+    return n;
+}
 
 /**
  * Returns the index of the bucket for a given key.
@@ -25,10 +55,10 @@ struct hash_table_elem {
  * @return the bucket index.
  */
 static size_t
-get_bucket_idx(hash_table *tbl, hash_table_key_t key)
+bucket_idx(hash_table *tbl, const hash_table_key_t key)
 {
-    // TODO: assert that bucket size is a power of two!
-    return tbl->hash_func(key) & (tbl->bucket_cnt - 1);
+    assert(is_pow2(tbl->num_buckets));
+    return tbl->hash_func(key) & (tbl->num_buckets - 1);
 }
 
 /**
@@ -36,10 +66,11 @@ get_bucket_idx(hash_table *tbl, hash_table_key_t key)
  * @param tbl a pointer to the hash table instance.
  * @param key the key.
  * @param val the value.
+ * @param bucket_idx the bucket index for the given key.
  * @return a newly created hash table element allocated on the heap, or NULL if heap allocation failed.
  */
 static hash_table_elem *
-create_elem(hash_table *tbl, hash_table_key_t key, hash_table_val_t val)
+create_elem(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val, size_t bucket_idx)
 {
     hash_table_elem *new_elem;
 
@@ -52,6 +83,7 @@ create_elem(hash_table *tbl, hash_table_key_t key, hash_table_val_t val)
     // set struct members
     new_elem->entry.key = key;
     new_elem->entry.val = val;
+    new_elem->bucket_idx = bucket_idx;
     new_elem->next = NULL;
 
     return new_elem;
@@ -64,12 +96,12 @@ create_elem(hash_table *tbl, hash_table_key_t key, hash_table_val_t val)
  * @return the hash table element or NULL if no element for the given key was found.
  */
 static hash_table_elem *
-find_elem(hash_table *tbl, hash_table_key_t key)
+find_elem(hash_table *tbl, const hash_table_key_t key)
 {
     hash_table_elem *e;
     size_t idx;
 
-    idx = get_bucket_idx(tbl, key);
+    idx = bucket_idx(tbl, key);
 
     for (e = tbl->buckets[idx]; e != NULL; e = e->next) {
         if (tbl->cmp_func(e->entry.key, key) == 0) {
@@ -96,7 +128,7 @@ next_elem(hash_table *tbl, hash_table_elem *current, size_t bucket_idx)
         return current->next;
     }
     // case 2: look for next non-empty bucket
-    for (idx = bucket_idx + 1; idx < tbl->bucket_cnt; ++idx) {
+    for (idx = bucket_idx + 1; idx < tbl->num_buckets; ++idx) {
         if (tbl->buckets[idx] != NULL) {
             return tbl->buckets[idx];
         }
@@ -129,7 +161,7 @@ free_elems(hash_table *tbl)
     hash_table_elem *p, *e;
 
     // free hash table elements first
-    for (i = 0; i < tbl->bucket_cnt; ++i) {
+    for (i = 0; i < tbl->num_buckets; ++i) {
         p = tbl->buckets[i];
         while (p != NULL) {
             e = p->next;
@@ -140,19 +172,13 @@ free_elems(hash_table *tbl)
     }
 }
 
-/**
- * Creates a hash table.
- * @param bucket_cnt the (initial) number of buckets the hash table shall use.
- * @param hash_func the hash function to use when adding / retrieving elements.
- * @param cmp_func the compare function used to compare two keys.
- * @return a pointer to a hash instance created on the heap; use hash_table_destroy() for cleanup!
- */
 hash_table *
-hash_table_create(size_t bucket_cnt, hash_function *hash_func, compare_function *cmp_func)
+hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function *cmp_func)
 {
     hash_table *tbl;
 
-    // TODO: assert that bucket count is a power of two
+    // round num. of buckets to next power of two (for efficiency reasons)
+    num_buckets = ceil_pow2(num_buckets);
 
     // allocate hash table first
     tbl = malloc(sizeof(hash_table));
@@ -161,45 +187,38 @@ hash_table_create(size_t bucket_cnt, hash_function *hash_func, compare_function 
     }
 
     // allocate buckets
-    tbl->buckets = (hash_table_elem **)calloc(bucket_cnt, sizeof(hash_table_elem *));
+    tbl->buckets = (hash_table_elem **)calloc(num_buckets, sizeof(hash_table_elem *));
     if (tbl->buckets == NULL) {
         free(tbl);
         return NULL;
     }
 
     // set values for hash table struct members
-    tbl->bucket_cnt = bucket_cnt;
-    tbl->elem_cnt = 0;
+    tbl->num_buckets = num_buckets;
+    tbl->num_elems = 0;
     tbl->hash_func = hash_func;
     tbl->cmp_func = cmp_func;
 
     return tbl;
 }
 
-/**
- * Puts a key, value pair into the hash table.
- * @param tbl a pointer to the hash table instance as returned by hash_table_create().
- * @param key the key.
- * @param val the value.
- * @return an integer interpreted as true when the pair was successfully inserted, false otherwise.
- */
 int
-hash_table_put(hash_table *tbl, hash_table_key_t key, hash_table_val_t val)
+hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val)
 {
     hash_table_elem *elem, *prev_elem, *new_elem;
     size_t idx;
     int cmp_val;
 
-    idx = get_bucket_idx(tbl, key);
+    idx = bucket_idx(tbl, key);
 
     // handle empty bucket case
     if (tbl->buckets[idx] == NULL) {
-        new_elem = create_elem(tbl, key, val);
+        new_elem = create_elem(tbl, key, val, idx);
         if (new_elem == NULL) {
             return 0;
         }
         tbl->buckets[idx] = new_elem;
-        tbl->elem_cnt++;
+        tbl->num_elems++;
         return 1;
     }
 
@@ -218,7 +237,7 @@ hash_table_put(hash_table *tbl, hash_table_key_t key, hash_table_val_t val)
     }
 
     // found greater element => insert new element into bucket before the found element
-    new_elem = create_elem(tbl, key, val);
+    new_elem = create_elem(tbl, key, val, idx);
     if (new_elem == NULL) {
         return 0;
     }
@@ -230,49 +249,31 @@ hash_table_put(hash_table *tbl, hash_table_key_t key, hash_table_val_t val)
         new_elem->next = prev_elem->next;
         prev_elem->next = new_elem;
     }
-    tbl->elem_cnt++;
+    tbl->num_elems++;
     return 1;
 }
 
-/**
- * Retrieves a value for a given key from the hash table instance.
- * @param tbl a pointer to the hash table instance.
- * @param key the key.
- * @return the value, or NULL.
- */
-void *
-hash_table_get(hash_table *tbl, hash_table_key_t key)
+hash_table_val_t
+hash_table_get(hash_table *tbl, const hash_table_key_t key)
 {
     hash_table_elem *e = find_elem(tbl, key);
-    return (e != NULL) ? e->entry.val : NULL;
+    return (e != NULL) ? e->entry.val : HASH_TABLE_VAL_NONE;
 }
 
-/**
- * Checks if the hash table contains a pair for a given key.
- * @param tbl a pointer to the hash table instance.
- * @param key the key.
- * @return true if hash table contains a pair for the given key, false otherwise.
- */
 int
-hash_table_contains(hash_table *tbl, hash_table_key_t key)
+hash_table_contains(hash_table *tbl, const hash_table_key_t key)
 {
     return find_elem(tbl, key) != NULL;
 }
 
-/**
- * Removes an entry from the hash table with given key.
- * @param tbl a pointer to the hash table instance.
- * @param key the key.
- * @return the value of the hash table entry or NULL if no entry with the given key was present.
- */
 hash_table_val_t
-hash_table_remove(hash_table *tbl, hash_table_key_t key)
+hash_table_remove(hash_table *tbl, const hash_table_key_t key)
 {
     hash_table_elem *e, *p;
     size_t idx;
     hash_table_val_t val;
 
-    idx = get_bucket_idx(tbl, key);
+    idx = bucket_idx(tbl, key);
 
     // find element
     for (e = tbl->buckets[idx], p = NULL; e != NULL; p =e, e = e->next) {
@@ -288,20 +289,15 @@ hash_table_remove(hash_table *tbl, hash_table_key_t key)
                 // case 2: element is in list
                 p->next = e->next;
             }
-            tbl->elem_cnt--;
+            tbl->num_elems--;
             free(e);
 
             return val;
         }
     }
-    return NULL;
+    return HASH_TABLE_VAL_NONE;
 }
 
-/**
- * Applies a function to all elements present in the hash table.
- * @param tbl a pointer to the hash table instance.
- * @param map_func the function to apply.
- */
 void
 hash_table_map(hash_table *tbl, map_function map_func)
 {
@@ -312,27 +308,16 @@ hash_table_map(hash_table *tbl, map_function map_func)
     while (hash_table_iterator_has_next(&iter)) {
         hash_table_iterator_next(&iter);
         hash_table_iterator_get(&iter, &entry);
-        map_func(entry.key, entry.val);
+        map_func(&entry);
     }
 }
 
-/**
- * Returns the number of elements currently present in the hash table.
- * @param tbl a pointer to the hash table instance.
- * @return the number of hash table entries
- */
 size_t
 hash_table_size(hash_table *tbl)
 {
-    return tbl->elem_cnt;
+    return tbl->num_elems;
 }
 
-/**
- * Initializes an iterator instance for iterating over the entries of a hash table.
- * WARNING: do not modify the hash table upon iteration!
- * @param tbl a pointer to the hash table instance.
- * @param iter a pointer to a allocated hash table iterator instance.
- */
 void
 hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter)
 {
@@ -342,21 +327,12 @@ hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter)
     iter->next = first_elem(tbl);
 }
 
-/**
- * Checks if the iterator can deliver another item.
- * @param iter a pointer to the hash table iterator instance.
- * @return true if the iterator can deliver another item, false otherwise.
- */
 int
 hash_table_iterator_has_next(hash_table_iter *iter)
 {
     return (iter->next != NULL);
 }
 
-/**
- * Lets the iterator point to the next hash table element.
- * @param iter a pointer to the hash table iterator instance.
- */
 void
 hash_table_iterator_next(hash_table_iter *iter)
 {
@@ -365,15 +341,10 @@ hash_table_iterator_next(hash_table_iter *iter)
     }
 
     iter->current = iter->next;
-    iter->bucket_idx = get_bucket_idx(iter->tbl, iter->current->entry.key); // TODO: do not recalculate hash value here, extend hash elem struct by bucket nr
+    iter->bucket_idx = iter->next->bucket_idx;
     iter->next = next_elem(iter->tbl, iter->current, iter->bucket_idx);
 }
 
-/**
- * Returns the current hash table element the iterator points to.
- * @param iter a pointer to the hash table iterator instance.
- * @param out the hash table entry instance to populate.
- */
 void
 hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out)
 {
@@ -385,11 +356,6 @@ hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out)
     out->val = iter->current->entry.val;
 }
 
-/**
- * Returns the key of the current hash table element the iterator points to.
- * @param iter a pointer to the hash table iterator instance.
- * @return a pointer to the key value.
- */
 hash_table_key_t
 hash_table_iterator_get_key(hash_table_iter *iter)
 {
@@ -399,11 +365,6 @@ hash_table_iterator_get_key(hash_table_iter *iter)
     return iter->current->entry.key;
 }
 
-/**
- * Returns the value of the current hash table element the iterator points to.
- * @param iter a pointer to the hash table iterator instance.
- * @return a pointer to the key value.
- */
 hash_table_val_t
 hash_table_iterator_get_value(hash_table_iter *iter)
 {
@@ -413,21 +374,13 @@ hash_table_iterator_get_value(hash_table_iter *iter)
     return iter->current->entry.val;
 }
 
-/**
- * Removes all entries currently present in the hash table.
- * @param tbl a pointer to the hash table instance.
- */
 void
 hash_table_clear(hash_table *tbl)
 {
     free_elems(tbl);
-    tbl->elem_cnt = 0;
+    tbl->num_elems = 0;
 }
 
-/**
- * Destroys a hash table created by hash_table_create().
- * @param tbl a pointer to the hash table instance.
- */
 void
 hash_table_destroy(hash_table *tbl)
 {
@@ -443,84 +396,48 @@ hash_table_destroy(hash_table *tbl)
     tbl = NULL;
 }
 
-/**
- * FNV hash function implementation for arbitrary bytes.
- * @param key the value to hash
- * @return the calculated hash value.
- */
 unsigned int
-hash_bytes(void *val, size_t size)
+hash_bytes(const void *data, size_t size)
 {
     unsigned int hash;
-    unsigned char *_val;
-
-    // cast value to expected type.
-    _val = (unsigned char *)val;
+    unsigned char *_data = (unsigned char *)data;
 
     hash = FNV_32_BASIS;
     while (size-- > 0)
-        hash = (hash * FNV_32_PRIME) ^ *_val++;
+        hash = (hash * FNV_32_PRIME) ^ *_data++;
 
     return hash;
 }
 
-/**
- * FNV hash function implementation for strings.
- * @param key the value to hash
- * @return a calculated hash value.
- */
 unsigned int
-hash_string(void *val)
+hash_string(const void *data)
 {
     unsigned int hash;
-    char *_val;
-
-    // cast value to expected type.
-    _val = (char *)val;
+    char *_data = (char *)data;
 
     hash = FNV_32_BASIS;
-    while (*_val != '\0')
-        hash = (hash * FNV_32_PRIME) ^ *_val++;
+    while (*_data != '\0')
+        hash = (hash * FNV_32_PRIME) ^ *_data++;
 
     return hash;
 }
 
-/**
- * FNV hash function implementation for integers.
- * @param key the value to hash
- * @return a calculated hash value.
- */
 unsigned int
-hash_int(void *val)
+hash_int(const void *val)
 {
     return hash_bytes(val, sizeof(int));
 }
 
-/**
- * FNV hash function implementation for longs.
- * @param key the value to hash
- * @return a calculated hash value.
- */
 unsigned int
-hash_long(void *val)
+hash_long(const void *val)
 {
     return hash_bytes(val, sizeof(long));
 }
 
-/**
- * A compare function implementation for strings.
- * @param val1 the first value for comparison.
- * @param val2 the second value for comparison.
- * @return returns a value < 0 if val1 is less than val2, 0 if val1 is equal to val2 or a value > 0 otherwise.
- */
 int
-hash_string_cmp(void *val1, void *val2)
+hash_string_cmp(const void *a, const void *b)
 {
-    char *_val1, *_val2;
-
-    // cast values to expected type
-    _val1 = (char *)val1;
-    _val2 = (char *)val2;
-
-    return strcmp(_val1, _val2);
+    char *a_str = (char *)a;
+    char *b_str = (char *)b;
+    return strcmp(a_str, b_str);
 }

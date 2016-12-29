@@ -10,15 +10,11 @@
 typedef void* hash_table_key_t;
 typedef void* hash_table_val_t;
 
-// TODO: define value for None (no key, on value)
-// TODO: add const keyword to all function arguments that should not be changed (e.g. hash_table_put(const ...key, const ...val))
-
 /**
- * Define signatures for hash and compare functions.
+ * Constants used to indicate none.
  */
-typedef unsigned int hash_function(void *data);
-typedef int compare_function(void *v1, void *v2);
-typedef void map_function(hash_table_key_t key, hash_table_val_t val);
+#define HASH_TABLE_KEY_NONE NULL
+#define HASH_TABLE_VAL_NONE NULL
 
 /**
  * Define types for the exposed structures.
@@ -27,6 +23,13 @@ typedef struct hash_table_elem hash_table_elem;
 typedef struct hash_table hash_table;
 typedef struct hash_table_iter hash_table_iter;
 typedef struct hash_table_entry hash_table_entry;
+
+/**
+ * Define signatures for hash and compare functions.
+ */
+typedef unsigned int hash_function(const void *data);
+typedef int compare_function(const void *a, const void *b);
+typedef void map_function(hash_table_entry *entry);
 
 // TODO: implement auto growing + rehashing
 
@@ -37,11 +40,11 @@ struct hash_table {
     /**
      * the number of buckets.
      */
-    size_t bucket_cnt;
+    size_t num_buckets;
     /**
      * the number of elements currently held by the hash table.
      */
-    size_t elem_cnt;
+    size_t num_elems;
     /**
      * the hash function to use.
      */
@@ -88,7 +91,7 @@ struct hash_table_entry {
 
 /**
  * Creates a hash table.
- * @param bucket_cnt the (initial) number of buckets the hash table shall use.
+ * @param num_buckets the (initial) number of buckets the hash table shall use.
  * @param hash_func the hash function to use when adding / retrieving elements.
  * @param cmp_func the compare function used to compare two keys.
  * @return a pointer to a hash instance created on the heap; use hash_table_destroy() for cleanup!
@@ -104,7 +107,7 @@ hash_table_create(size_t bucket_count, hash_function *hash_func, compare_functio
  * @return an integer interpreted as true when the pair was successfully inserted, false otherwise.
  */
 int
-hash_table_put(hash_table *tbl, hash_table_key_t key, hash_table_val_t val);
+hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val);
 
 /**
  * Retrieves a value for a given key from the hash table instance.
@@ -113,7 +116,7 @@ hash_table_put(hash_table *tbl, hash_table_key_t key, hash_table_val_t val);
  * @return the value, or NULL.
  */
 hash_table_val_t
-hash_table_get(hash_table *tbl, hash_table_key_t key);
+hash_table_get(hash_table *tbl, const hash_table_key_t key);
 
 /**
  * Checks if the hash table contains a pair for a given key.
@@ -122,7 +125,7 @@ hash_table_get(hash_table *tbl, hash_table_key_t key);
  * @return
  */
 int
-hash_table_contains(hash_table *tbl, hash_table_key_t key);
+hash_table_contains(hash_table *tbl, const hash_table_key_t key);
 
 /**
  * Removes an entry from the hash table with given key.
@@ -131,7 +134,7 @@ hash_table_contains(hash_table *tbl, hash_table_key_t key);
  * @return the value of the hash table entry or NULL if no entry with the given key was present.
  */
 hash_table_val_t
-hash_table_remove(hash_table *tbl, hash_table_key_t key);
+hash_table_remove(hash_table *tbl, const hash_table_key_t key);
 
 /**
  * Applies a function to all elements present in the hash table.
@@ -224,7 +227,7 @@ hash_table_destroy(hash_table *tbl);
  * @return the calculated hash value.
  */
 unsigned int
-hash_bytes(void *val, size_t size);
+hash_bytes(const void *val, size_t size);
 
 /**
  * FNV hash function implementation for strings.
@@ -232,7 +235,7 @@ hash_bytes(void *val, size_t size);
  * @return a calculated hash value.
  */
 unsigned int
-hash_string(void *val);
+hash_string(const void *val);
 
 /**
  * FNV hash function implementation for integers.
@@ -240,7 +243,7 @@ hash_string(void *val);
  * @return a calculated hash value.
  */
 unsigned int
-hash_int(void *val);
+hash_int(const void *val);
 
 /**
  * FNV hash function implementation for longs.
@@ -248,15 +251,15 @@ hash_int(void *val);
  * @return a calculated hash value.
  */
 unsigned int
-hash_long(void *val);
+hash_long(const void *val);
 
 /**
  * A compare function implementation for strings.
- * @param val1 the first value for comparison.
- * @param val2 the second value for comparison.
- * @return returns a value < 0 if val1 is less than val2, 0 if val1 is equal to val2 or a value > 0 otherwise.
+ * @param a the first value for comparison.
+ * @param b the second value for comparison.
+ * @return returns a value < 0 if a is less than b, 0 if a is equal to b or a value > 0 otherwise.
  */
 int
-hash_string_cmp(void *val1, void *val2);
+hash_string_cmp(const void *a, const void *b);
 
 #endif /* HASH_TABLE_H */
