@@ -5,9 +5,6 @@
 
 #include "hash_table.h"
 
-#define FNV_32_PRIME 16777619u
-#define FNV_32_BASIS 2166136261u
-
 int
 main(int argc, char *argv[])
 {
