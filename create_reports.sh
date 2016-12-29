@@ -16,6 +16,16 @@ perf_report() {
     (perf stat -e cycles ./life $GENERATIONS < $FILE | sort > /dev/null) > measurements/perf/${FILE}_${GENERATIONS}.log 2>&1
 }
 
+oprofile_report() {
+    GENERATIONS=$1
+    FILE=$2
+
+    echo "oprofile report for $FILE with $GENERATIONS generations ..."
+    mkdir measurements/oprofile/${FILE}_${GENERATIONS}
+    operf --session-dir ./measurements/oprofile/${FILE}_${GENERATIONS} ./life $GENERATIONS < $FILE | sort > /dev/null
+    opreport --session-dir ./measurements/oprofile/${FILE}_${GENERATIONS} > ./measurements/oprofile/${FILE}_${GENERATIONS}/report.log
+}
+
 #### Main
 echo "Cleaning up previous builds ..."
 make clean
@@ -25,11 +35,12 @@ make life
 FILES=*.l
 for f in $FILES
 do
-    perf_report $1 $f
+    #perf_report $1 $f
+    #oprofile_report $1 $f
 done
 
 echo "Generating lcov report ..."
-lcov_report Life
+#lcov_report Life
 echo "Done."
 
 echo "Cleaning up ..."
