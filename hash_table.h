@@ -10,6 +10,8 @@
 typedef void* hash_table_key_t;
 typedef void* hash_table_val_t;
 
+// TODO: define value for None (no key, on value)
+
 /**
  * Define signatures for hash and compare functions.
  */
@@ -119,6 +121,15 @@ hash_table_get(hash_table *tbl, hash_table_key_t key);
  */
 int
 hash_table_contains(hash_table *tbl, hash_table_key_t key);
+
+/**
+ * Removes an entry from the hash table with given key.
+ * @param tbl a pointer to the hash table instance.
+ * @param key the key.
+ * @return the value of the hash table entry or NULL if no entry with the given key was present.
+ */
+hash_table_val_t
+hash_table_remove(hash_table *tbl, hash_table_key_t key);
 
 /**
  * Returns the number of elements currently present in the hash table.

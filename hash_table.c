@@ -238,6 +238,44 @@ hash_table_contains(hash_table *tbl, hash_table_key_t key)
 }
 
 /**
+ * Removes an entry from the hash table with given key.
+ * @param tbl a pointer to the hash table instance.
+ * @param key the key.
+ * @return the value of the hash table entry or NULL if no entry with the given key was present.
+ */
+hash_table_val_t
+hash_table_remove(hash_table *tbl, hash_table_key_t key)
+{
+    hash_table_elem *e, *p;
+    size_t idx;
+    hash_table_val_t val;
+
+    idx = get_bucket_idx(tbl, key);
+
+    // find element
+    for (e = tbl->buckets[idx], p = NULL; e != NULL; p =e, e = e->next) {
+        if (tbl->cmp_func(e->entry.key, key) == 0) {
+            val = e->entry.val;
+
+            // remove element from hash table
+            if (p == NULL) {
+                // case 1: element is head
+                tbl->buckets[idx] = e->next;
+            }
+            else {
+                // case 2: element is in list
+                p->next = e->next;
+            }
+            tbl->elem_cnt--;
+            free(e);
+
+            return val;
+        }
+    }
+    return NULL;
+}
+
+/**
  * Returns the number of elements currently present in the hash table.
  * @param tbl
  * @return
