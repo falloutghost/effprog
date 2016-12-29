@@ -30,17 +30,17 @@ oprofile_report() {
 echo "Cleaning up previous builds ..."
 make clean
 echo "Building ..."
-make life
+make coverage
 
 FILES=*.l
 for f in $FILES
 do
-    #perf_report $1 $f
+    perf_report $1 $f
     #oprofile_report $1 $f
 done
 
 echo "Generating lcov report ..."
-#lcov_report Life
+lcov_report LifeHash
 echo "Done."
 
 echo "Cleaning up ..."

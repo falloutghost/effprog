@@ -26,9 +26,8 @@ dist: $(SOURCES) $(GEN) effizienz-aufgabe07.tar.gz
 	cp -p $(SOURCES) $(GEN) effizienz-aufgabe07.tar.gz /nfs/unsafe/httpd/ftp/pub/anton/lvas/effizienz-aufgabe07
 
 coverage:
-	bison readlife.y
+	#bison readlife.y
 	gcc -g -O -Wall --coverage -c -o life.o life.c
-	gcc -g -O -Wall --coverage -c -o readlife.tab.o readlife.tab.c
-	gcc -g -O -Wall --coverage -c -o readlife.tab.o readlife.tab.c
+	#gcc -g -O -Wall --coverage -c -o readlife.tab.o readlife.tab.c
 	gcc -g -O -Wall --coverage -c -o hash_table.o hash_table.c
-	gcc -g -lgcov --coverage life.o readlife.tab.o hash_table.o -o life
+	gcc -g -lgcov --coverage life.o hash_table.o -o life
