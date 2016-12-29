@@ -5,9 +5,6 @@
 
 #include "hash_table.h"
 
-#define FNV_32_PRIME 16777619u
-#define FNV_32_BASIS 2166136261u
-
 int
 main(int argc, char *argv[])
 {
@@ -52,6 +49,17 @@ main(int argc, char *argv[])
     hash_table_remove(tbl, "a");
     hash_table_remove(tbl, "c");
     hash_table_remove(tbl, "z"); // doesn't exist
+
+    printf("Dumping hash table content ::\n");
+    hash_table_iterator_init(tbl, &iter);
+    while (hash_table_iterator_has_next(&iter)) {
+        hash_table_iterator_next(&iter);
+        key = (char *)hash_table_iterator_get_key(&iter);
+        val = (char *)hash_table_iterator_get_value(&iter);
+        printf("%s = %s\n", key, val);
+    }
+
+    hash_table_clear(tbl);
 
     printf("Dumping hash table content ::\n");
     hash_table_iterator_init(tbl, &iter);

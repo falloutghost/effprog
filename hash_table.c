@@ -119,6 +119,28 @@ first_elem(hash_table *tbl)
 }
 
 /**
+ * Frees memory allocated for the hash table elements.
+ * @param tbl the hash table.
+ */
+static void
+free_elems(hash_table *tbl)
+{
+    int i;
+    hash_table_elem *p, *e;
+
+    // free hash table elements first
+    for (i = 0; i < tbl->bucket_cnt; ++i) {
+        p = tbl->buckets[i];
+        while (p != NULL) {
+            e = p->next;
+            free(p);
+            p = e;
+        }
+        tbl->buckets[i] = NULL;
+    }
+}
+
+/**
  * Creates a hash table.
  * @param bucket_cnt the (initial) number of buckets the hash table shall use.
  * @param hash_func the hash function to use when adding / retrieving elements.
@@ -277,10 +299,10 @@ hash_table_remove(hash_table *tbl, hash_table_key_t key)
 
 /**
  * Returns the number of elements currently present in the hash table.
- * @param tbl
- * @return
+ * @param tbl a pointer to the hash table instance.
+ * @return the number of hash table entries
  */
-int
+size_t
 hash_table_size(hash_table *tbl)
 {
     return tbl->elem_cnt;
@@ -288,6 +310,7 @@ hash_table_size(hash_table *tbl)
 
 /**
  * Initializes an iterator instance for iterating over the entries of a hash table.
+ * WARNING: do not modify the hash table upon iteration!
  * @param tbl a pointer to the hash table instance.
  * @param iter a pointer to a allocated hash table iterator instance.
  */
@@ -348,7 +371,7 @@ hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out)
  * @param iter a pointer to the hash table iterator instance.
  * @return a pointer to the key value.
  */
-void *
+hash_table_key_t
 hash_table_iterator_get_key(hash_table_iter *iter)
 {
     if (iter->current == NULL) {
@@ -362,7 +385,7 @@ hash_table_iterator_get_key(hash_table_iter *iter)
  * @param iter a pointer to the hash table iterator instance.
  * @return a pointer to the key value.
  */
-void *
+hash_table_val_t
 hash_table_iterator_get_value(hash_table_iter *iter)
 {
     if (iter->current == NULL) {
@@ -372,24 +395,25 @@ hash_table_iterator_get_value(hash_table_iter *iter)
 }
 
 /**
+ * Removes all entries currently present in the hash table.
+ * @param tbl a pointer to the hash table instance.
+ */
+void
+hash_table_clear(hash_table *tbl)
+{
+    free_elems(tbl);
+    tbl->elem_cnt = 0;
+}
+
+/**
  * Destroys a hash table created by hash_table_create().
  * @param tbl a pointer to the hash table instance.
  */
 void
 hash_table_destroy(hash_table *tbl)
 {
-    int i;
-    hash_table_elem *p, *e;
-
     // free hash table elements first
-    for (i = 0; i < tbl->bucket_cnt; ++i) {
-        p = tbl->buckets[i];
-        while (p != NULL) {
-            e = p->next;
-            free(p);
-            p = e;
-        }
-    }
+    free_elems(tbl);
 
     // free bucket array
     free(tbl->buckets);
