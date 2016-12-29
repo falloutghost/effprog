@@ -11,11 +11,10 @@
 #include "hash_table.h"
 #include "life.h"
 
-FILE *infile;
-Celllist *gen0;
+static hash_table *tbl_gen_current;
+static hash_table *tbl_gen_next;
 
-hash_table *hash_tbl;
-
+// used as hash function for the hash table(s).
 static unsigned int
 hash_point(void *val)
 {
@@ -23,99 +22,119 @@ hash_point(void *val)
   return hash_long(&p->x) + hash_long(&p->y);
 }
 
+// used as compare function for the hash table(s).
 static int
 hash_point_cmp(void *val1, void *val2)
 {
   Point *p1 = (Point *)val1;
   Point *p2 = (Point *)val2;
-  return ((p1->x - p2->x) == 0) ? (p1->y - p2->y) : (p1->x - p2->x);
+  int xdiff = p1->x - p2->x;
+  return (xdiff == 0) ? (p1->y - p2->y) : xdiff;
 }
 
-long alive(long x, long y, Celllist *l)
+// used to free all cell instances put into the hash table(s).
+static void
+hash_table_gen_free(void *key, void *val)
 {
-  /*fprintf(stderr,"alive x=%ld y=%ld l=%p",x,y,l);*/
-  for (; l; l = l->next) {
-    /* fprintf(stderr,"alive x=%ld y=%ld l=(%ld,%ld)",x,y,l->x, l->y);*/
-    if (x==l->x && y==l->y) {
-      /*fprintf(stderr,"=1\n");*/
-      return 1;
+    free(val);
+}
+
+// Creates a cell instance, allocated on the heap.
+static Cell *
+create_cell(long x, long y, Status status)
+{
+    Cell *c = (Cell *)malloc(sizeof(Cell));
+    if (c == NULL) {
+        return NULL;
     }
-  }
-  /*fprintf(stderr,"=0\n");*/
-  return 0;
+    c->coordinates.x = x;
+    c->coordinates.y = y;
+    c->status = status;
+    return c;
 }
 
-Celllist *newcell(long x, long y, Celllist *l)
+// Checks if a cell is alive in the current generation.
+long alive(long x, long y)
 {
-  Celllist *c = malloc(sizeof(Celllist));
-  /*fprintf(stderr,"newcell x=%ld y=%ld\n",x,y);*/
-  c->x = x;
-  c->y = y;
-  c->next = l;
-  return c;
+  Point p;
+  p.x = x;
+  p.y = y;
+  return hash_table_contains(tbl_gen_current, &p);
 }
 
-Celllist *checkcell(long x, long y, Celllist *old, Celllist *new)
+// Checks if a cell should be alive in the next generation;
+// if the cell is alive, it is created and stored for the next generation.
+void checkcell(long x, long y)
 {
+  Cell *c;
   int n=0;
-  if (alive(x,y,new))
-    return new;
-  n += alive(x-1, y-1, old);
-  n += alive(x-1, y+0, old);
-  n += alive(x-1, y+1, old);
-  n += alive(x+0, y-1, old);
-  n += alive(x+0, y+1, old);
-  n += alive(x+1, y-1, old);
-  n += alive(x+1, y+0, old);
-  n += alive(x+1, y+1, old);
+  
+  n += alive(x-1, y-1);
+  n += alive(x-1, y+0);
+  n += alive(x-1, y+1);
+  n += alive(x+0, y-1);
+  n += alive(x+0, y+1);
+  n += alive(x+1, y-1);
+  n += alive(x+1, y+0);
+  n += alive(x+1, y+1);
+
   /*fprintf(stderr,"checkcell x=%ld y=%ld old=%p new=%p n=%d\n",x,y,old,new,n);*/
-  if (n==3)
-    return newcell(x,y,new);
-  else if (n==2 && alive(x,y,old))
-    return newcell(x,y,new);
-  else
-    return new;
-}
 
-Celllist *onegeneration(Celllist *old)
-{
-  Celllist *new = NULL;
-  Celllist *l;
-
-  for (l=old; l; l = l->next) {
-    long x = l->x;
-    long y = l->y;
-    new = checkcell(x-1, y-1, old, new);
-    new = checkcell(x-1, y+0, old, new);
-    new = checkcell(x-1, y+1, old, new);
-    new = checkcell(x+0, y-1, old, new);
-    new = checkcell(x+0, y+0, old, new);
-    new = checkcell(x+0, y+1, old, new);
-    new = checkcell(x+1, y-1, old, new);
-    new = checkcell(x+1, y+0, old, new);
-    new = checkcell(x+1, y+1, old, new);
-  }
-  return new;
-}
-
-void freecelllist(Celllist *l)
-{
-  while (l) {
-    Celllist *old = l;
-    l = l->next;
-    free(old);
+  if (n == 3 || (n == 2 && alive(x,y))) {
+    c = create_cell(x, y, ALIVE);
+    if (c == NULL) {
+      perror("create_cell");
+      exit(1);
+    }
+    hash_table_put(tbl_gen_next, &c->coordinates, c);
   }
 }
 
-Celllist *readlife(FILE *f)
+// Advanced the game of life by one generation.
+void onegeneration()
+{
+  hash_table *tbl_gen_tmp;
+  hash_table_iter iter;
+  Point *p;
+  long x, y;
+
+  hash_table_iterator_init(tbl_gen_current, &iter);
+  while (hash_table_iterator_has_next(&iter)) {
+    hash_table_iterator_next(&iter);
+
+    p = (Point *)hash_table_iterator_get_key(&iter);
+    x = p->x;
+    y = p->y;
+
+    checkcell(x-1, y-1);
+    checkcell(x-1, y+0);
+    checkcell(x-1, y+1);
+    checkcell(x+0, y-1);
+    checkcell(x+0, y+0);
+    checkcell(x+0, y+1);
+    checkcell(x+1, y-1);
+    checkcell(x+1, y+0);
+    checkcell(x+1, y+1);
+  }
+
+  // use calculated, next generation as current generation
+  tbl_gen_tmp = tbl_gen_current;
+  tbl_gen_current = tbl_gen_next;
+  tbl_gen_next = tbl_gen_tmp;
+
+  // clean hash table for next generation
+  hash_table_map(tbl_gen_next, &hash_table_gen_free);
+  hash_table_clear(tbl_gen_next);
+}
+
+// Reads the initial state of the cells from an input file.
+void readlife(FILE *f)
 {
   struct stat sb;
   int fd;
-  long x, y;
   char *begin, *s, *end;
-
-  Celllist *list = NULL;
-  Cell *c = NULL;
+  long x, y;
+  Cell *c;
 
   fd = fileno(f);
 
@@ -151,73 +170,81 @@ Celllist *readlife(FILE *f)
     }
     s = endptr;
 
-    list = newcell(x, y, list);
-
-    c = malloc(sizeof(Cell));
+    c = create_cell(x, y, ALIVE);
     if (c == NULL) {
-      perror("malloc");
+      perror("create_cell");
       exit(1);
     }
-    c->coordinates.x = x;
-    c->coordinates.y = y;
 
-    hash_table_put(hash_tbl, &c->coordinates, c);
+    hash_table_put(tbl_gen_current, &c->coordinates, c);
 
     while (*s == ' ' || *s == '\n') s++;
   }
 
   munmap(begin, sb.st_size);
-
-  return list;
 }
 
-void writelife(FILE *f, Celllist *l)
+// Writes the cells which are alive in the current generation to an output file.
+void writelife(FILE *f)
 {
-  for (; l; l = l->next)
-    fprintf(f, "%ld %ld\n", l->x, l->y);
+  hash_table_iter iter;
+  Point *p;
+
+  hash_table_iterator_init(tbl_gen_current, &iter);
+  while (hash_table_iterator_has_next(&iter)) {
+    hash_table_iterator_next(&iter);
+    p = (Point *)hash_table_iterator_get_key(&iter);
+    fprintf(f, "%ld %ld\n", p->x, p->y);
+  }
 }
 
-long countcells(Celllist *l)
+// Counts how many cells are alive in the current generation.
+size_t countcells()
 {
-  long c=0;
-  for (; l; l = l->next)
-    c++;
-  return c;
+  return hash_table_size(tbl_gen_current);
 }
 
 int main(int argc, char **argv)
 {
-  Celllist *current;
   long generations;
   long i;
   char *endptr;
 
+  // arguments checking.
   if (argc!=2) {
     fprintf(stderr, "Usage: %s #generations <startfile | sort >endfile\n", argv[0]);
     exit(1);
   }
+
+  // parse nr of generations.
   generations = strtol(argv[1], &endptr, 10);
   if (*endptr != '\0') {
     fprintf(stderr, "\"%s\" not a valid generation count\n", argv[3]);
     exit(1);
   }
 
-  hash_tbl = hash_table_create(512, hash_point, hash_point_cmp);
+  // create hash tables.
+  tbl_gen_current = hash_table_create(512, hash_point, hash_point_cmp);
+  tbl_gen_next    = hash_table_create(512, hash_point, hash_point_cmp);
 
-  current = readlife(stdin);
+  // read in initial generation.
+  readlife(stdin);
 
-  fprintf(stderr, "DEBUG: hash table size: %d\n", hash_table_size(hash_tbl));
-  fprintf(stderr, "DEBUG: list size: %ld\n", countcells(current));
-
+  // advance generations.
   for (i=0; i<generations; i++) {
-    Celllist *old = current;
-    current = onegeneration(current);
-    freecelllist(old);
+    onegeneration();
   }
-  writelife(stdout, current);
-  fprintf(stderr,"%ld cells alive\n", countcells(current));
 
-  hash_table_destroy(hash_tbl);
+  writelife(stdout);
+
+  fprintf(stderr,"%zu cells alive\n", countcells());
+
+  // free memory allocated for cells.
+  hash_table_map(tbl_gen_current, &hash_table_gen_free);
+
+  // destroy hash tables.
+  hash_table_destroy(tbl_gen_current);
+  hash_table_destroy(tbl_gen_next);
 
   return 0;
 }
