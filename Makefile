@@ -8,7 +8,7 @@ life: life.c hash_table.c
 	$(CC) $(CFLAGS) -o life life.c hash_table.c
 
 clean:
-	rm -rf life *.o
+	rm -rf life *.o *.gch *.gcno
 
 coverage:
 	$(CC) $(CFLAGS) --coverage -c -o life.o life.c
