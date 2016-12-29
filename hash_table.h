@@ -11,12 +11,14 @@ typedef void* hash_table_key_t;
 typedef void* hash_table_val_t;
 
 // TODO: define value for None (no key, on value)
+// TODO: add const keyword to all function arguments that should not be changed (e.g. hash_table_put(const ...key, const ...val))
 
 /**
  * Define signatures for hash and compare functions.
  */
 typedef unsigned int hash_function(void *data);
 typedef int compare_function(void *v1, void *v2);
+typedef void map_function(hash_table_key_t key, hash_table_val_t val);
 
 /**
  * Define types for the exposed structures.
@@ -130,6 +132,14 @@ hash_table_contains(hash_table *tbl, hash_table_key_t key);
  */
 hash_table_val_t
 hash_table_remove(hash_table *tbl, hash_table_key_t key);
+
+/**
+ * Applies a function to all elements present in the hash table.
+ * @param tbl a pointer to the hash table instance.
+ * @param map_func the function to apply.
+ */
+void
+hash_table_map(hash_table *tbl, map_function map_func);
 
 /**
  * Returns the number of elements currently present in the hash table.

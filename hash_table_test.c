@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 
     printf("a = %s\n", a);
     printf("b = %s\n", b);
-    printf("size = %d\n", hash_table_size(tbl));
+    printf("size = %zu\n", hash_table_size(tbl));
 
     hash_table_put(tbl, "a", "alpha");
     hash_table_put(tbl, "b", "bravo");
@@ -35,7 +35,7 @@ main(int argc, char *argv[])
     printf("a = %s\n", a2);
     printf("b = %s\n", b2);
     printf("c = %s\n", c2);
-    printf("size = %d\n", hash_table_size(tbl));
+    printf("size = %zu\n", hash_table_size(tbl));
 
     printf("Dumping hash table content ::\n");
     hash_table_iterator_init(tbl, &iter);

@@ -298,6 +298,25 @@ hash_table_remove(hash_table *tbl, hash_table_key_t key)
 }
 
 /**
+ * Applies a function to all elements present in the hash table.
+ * @param tbl a pointer to the hash table instance.
+ * @param map_func the function to apply.
+ */
+void
+hash_table_map(hash_table *tbl, map_function map_func)
+{
+    hash_table_iter iter;
+    hash_table_entry entry;
+
+    hash_table_iterator_init(tbl, &iter);
+    while (hash_table_iterator_has_next(&iter)) {
+        hash_table_iterator_next(&iter);
+        hash_table_iterator_get(&iter, &entry);
+        map_func(entry.key, entry.val);
+    }
+}
+
+/**
  * Returns the number of elements currently present in the hash table.
  * @param tbl a pointer to the hash table instance.
  * @return the number of hash table entries
