@@ -1,11 +1,11 @@
 
-Profiling started at Fri Dec 30 17:10:16 2016
-Profiling stopped at Fri Dec 30 17:10:19 2016
+Profiling started at Fri Dec 30 18:56:41 2016
+Profiling stopped at Fri Dec 30 18:56:44 2016
 
 -- OProfile/operf Statistics --
-Nr. non-backtrace samples: 78739
-Nr. kernel samples: 429
-Nr. user space samples: 78310
+Nr. non-backtrace samples: 90034
+Nr. kernel samples: 439
+Nr. user space samples: 89595
 Nr. samples lost due to sample address not in expected range for domain: 0
 Nr. lost kernel samples: 0
 Nr. samples lost due to sample file open failure: 0
