@@ -26,6 +26,7 @@ oprofile_report() {
     TAG=$3
 
     printf "oprofile report for $FILE with $GENERATIONS generations ...\n"
+    mkdir measurements/oprofile/${TAG}
     mkdir measurements/oprofile/${TAG}/${FILE}_${GENERATIONS}
     operf --session-dir ./measurements/oprofile/${TAG}/${FILE}_${GENERATIONS} ./life $GENERATIONS < $FILE | sort > /dev/null
     opreport --session-dir ./measurements/oprofile/${TAG}/${FILE}_${GENERATIONS} > ./measurements/oprofile/${TAG}/${FILE}_${GENERATIONS}/report.log

@@ -1,1 +1,18 @@
-Workload failed: No such file or directory
+4406 cells alive
+failed to read counter L1-dcache-store-misses
+
+ Performance counter stats for './life 100':
+
+     8.841.351.866      cycles:u                                                      (33,35%)
+        51.989.610      cycles:k                                                      (44,45%)
+    10.736.027.174      instructions:u            #    1,21  insns per cycle          (55,56%)
+        39.767.143      branch-misses                                                 (55,56%)
+       180.130.715      L1-dcache-load-misses                                         (55,56%)
+   <not supported>      L1-dcache-store-misses   
+        67.148.131      LLC-loads                                                     (55,61%)
+            94.884      LLC-stores                                                    (55,78%)
+           392.032      LLC-load-misses           #    0,58% of all LL-cache hits     (22,28%)
+             1.937      LLC-store-misses                                              (22,25%)
+
+       2,664735876 seconds time elapsed
+
