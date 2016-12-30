@@ -110,7 +110,7 @@ do
     git add .
     git commit -a -m "${tag} reports"
     git checkout master
-    git merge ${tag}_report -X theirs
+    git merge ${tag}_report -X theirs -m "merge ${tag} reports"
     git branch -d ${tag}_report
 done
 
