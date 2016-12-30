@@ -2,7 +2,7 @@
 
  Performance counter stats for './life 100':
 
-     8.834.227.681      cycles                                                      
+    10.056.127.054      cycles                                                      
 
-       2,650309150 seconds time elapsed
+       3,014620755 seconds time elapsed
 
