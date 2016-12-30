@@ -28,7 +28,7 @@ struct hash_table_elem {
  * @param n the number to check.
  * @return true if n is a power of two, false otherwise.
  */
-static int
+static inline int
 is_pow2(size_t n)
 {
     return n != 0 && (n & (n - 1)) == 0;
@@ -39,7 +39,7 @@ is_pow2(size_t n)
  * @param n the number to round.
  * @return the next power of two greather than n.
  */
-static size_t
+static inline size_t
 ceil_pow2(size_t n)
 {
     while (!is_pow2(n)) {
@@ -54,7 +54,7 @@ ceil_pow2(size_t n)
  * @param key the key.
  * @return the bucket index.
  */
-static size_t
+static inline size_t
 bucket_idx(hash_table *tbl, const hash_table_key_t key)
 {
     assert(is_pow2(tbl->num_buckets));
@@ -69,7 +69,7 @@ bucket_idx(hash_table *tbl, const hash_table_key_t key)
  * @param bucket_idx the bucket index for the given key.
  * @return a newly created hash table element allocated on the heap, or NULL if heap allocation failed.
  */
-static hash_table_elem *
+static inline hash_table_elem *
 create_elem(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val, size_t bucket_idx)
 {
     hash_table_elem *new_elem;
@@ -95,7 +95,7 @@ create_elem(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t 
  * @param key the key to look for
  * @return the hash table element or NULL if no element for the given key was found.
  */
-static hash_table_elem *
+static inline hash_table_elem *
 find_elem(hash_table *tbl, const hash_table_key_t key)
 {
     hash_table_elem *e;
@@ -118,7 +118,7 @@ find_elem(hash_table *tbl, const hash_table_key_t key)
  * @param current the current hash table element.
  * @return the next hash table element or NULL if there is no other element left.
  */
-static hash_table_elem *
+static inline hash_table_elem *
 next_elem(hash_table *tbl, hash_table_elem *current, size_t bucket_idx)
 {
     size_t idx;
@@ -141,7 +141,7 @@ next_elem(hash_table *tbl, hash_table_elem *current, size_t bucket_idx)
  * @param tbl a pointer to the hash table instance.
  * @return the first hash table element or NULL if no element is present.
  */
-static hash_table_elem *
+static inline hash_table_elem *
 first_elem(hash_table *tbl)
 {
     if (hash_table_size(tbl) == 0) {
@@ -154,7 +154,7 @@ first_elem(hash_table *tbl)
  * Frees memory allocated for the hash table elements.
  * @param tbl the hash table.
  */
-static void
+static inline void
 free_elems(hash_table *tbl)
 {
     int i;

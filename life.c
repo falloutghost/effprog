@@ -19,7 +19,7 @@ static unsigned int
 hash_point(const void *data)
 {
   Point *p = (Point *)data;
-  return hash_long(&p->x) + hash_long(&p->y);
+  return hash_bytes(&p->x, sizeof(long)) + hash_bytes(&p->y, sizeof(long));
 }
 
 // used as compare function for the hash table(s).
@@ -55,6 +55,7 @@ create_cell(long x, long y, Status status)
 }
 
 // Checks if a cell is alive in the current generation.
+static inline
 long alive(long x, long y)
 {
   Point p;
@@ -65,7 +66,8 @@ long alive(long x, long y)
 
 // Checks if a cell should be alive in the next generation;
 // if the cell is alive, it is created and stored for the next generation.
-void checkcell(long x, long y)
+static void
+checkcell(long x, long y)
 {
   Cell *c;
   int n=0;
@@ -92,7 +94,8 @@ void checkcell(long x, long y)
 }
 
 // Advanced the game of life by one generation.
-void onegeneration()
+static void
+onegeneration()
 {
   hash_table *tbl_gen_tmp;
   hash_table_iter iter;
@@ -129,7 +132,8 @@ void onegeneration()
 }
 
 // Reads the initial state of the cells from an input file.
-void readlife(FILE *f)
+static void
+readlife(FILE *f)
 {
   struct stat sb;
   int fd;
@@ -186,7 +190,8 @@ void readlife(FILE *f)
 }
 
 // Writes the cells which are alive in the current generation to an output file.
-void writelife(FILE *f)
+static void
+writelife(FILE *f)
 {
   hash_table_iter iter;
   Point *p;
@@ -200,7 +205,8 @@ void writelife(FILE *f)
 }
 
 // Counts how many cells are alive in the current generation.
-size_t countcells()
+static inline size_t
+countcells()
 {
   return hash_table_size(tbl_gen_current);
 }
