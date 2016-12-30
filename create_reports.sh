@@ -38,9 +38,8 @@ reports() {
     FILES=*.l
     for f in $FILES
     do
-        echo "test"
-        #perf_report $GENERATIONS $f $TAG
-        #oprofile_report $GENERATIONS $f $TAG
+        perf_report $GENERATIONS $f $TAG
+        oprofile_report $GENERATIONS $f $TAG
     done
 }
 
@@ -61,13 +60,15 @@ print_heading() {
 #### Main
 print_heading "Report Generation"
 
+cd ./effprog
+
 TAGS=`git tag`
 for tag in $TAGS
 do
     print_heading "Generating reports for $tag ..."
 
     # switch to tag
-    #git checkout -b ${tag}_report $tag
+    git checkout -b ${tag}_report $tag
 
     # clean up and prepare for coverage
     printf "Cleaning up previous builds ...\n"
@@ -77,13 +78,13 @@ do
 
     # generate reports
 
-    #reports $1 $tag
-    #lcov_report $tag $tag
+    reports $1 $tag
+    lcov_report $tag $tag
 
     # merge reports into master and delete report branch
-    #git checkout master
-    #git merge ${tag}_report --strategy-option theirs
-    #git branch -d ${tag}_report
+    git checkout master
+    git merge ${tag}_report --strategy-option theirs
+    git branch -d ${tag}_report
 done
 
 print_heading "Cleaning up"
