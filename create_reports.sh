@@ -59,16 +59,29 @@ print_heading() {
 }
 
 #### Main
+GENERATIONS=100
 TAGS=`git tag`
 
 while getopts 't:' flag; do
     case "${flag}" in
+        g) GENERATIONS=${OPTARG} ;;
         t) TAGS="${OPTARG}";;
         *) error "Unexpected option ${flag}" ;;
     esac
 done
 
 print_heading "Report Generation"
+
+printf "Life generations: %d\n" $GENERATIONS
+printf "Tags: %s\n" "$TAGS"
+
+printf "\ncontinue? (Y/n): "
+read confirmation
+
+if [ $confirmation = "n" ]
+then
+    exit
+fi
 
 cd ./effprog
 
@@ -87,7 +100,7 @@ do
 
     # generate reports
 
-    reports $1 $tag
+    reports $GENERATIONS $tag
     lcov_report $tag $tag
 
     # merge reports into master and delete report branch
