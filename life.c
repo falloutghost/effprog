@@ -41,7 +41,7 @@ hash_table_gen_free(hash_table_entry *entry)
 }
 
 // Creates a cell instance, allocated on the heap.
-static Cell *
+static inline Cell *
 create_cell(long x, long y, Status status)
 {
     Cell *c = (Cell *)malloc(sizeof(Cell));

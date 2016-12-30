@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -O -Wall -DNDEBUG
+CFLAGS=-g -O2 -Wall -DNDEBUG
 LDFLAGS=-g
 
 all: life
