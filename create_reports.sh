@@ -59,10 +59,12 @@ print_heading() {
 }
 
 #### Main
+cd ./effprog
+
 GENERATIONS=100
 TAGS=`git tag`
 
-while getopts 't:' flag; do
+while getopts 't:g:' flag; do
     case "${flag}" in
         g) GENERATIONS=${OPTARG} ;;
         t) TAGS="${OPTARG}";;
@@ -82,8 +84,6 @@ if [ $confirmation = "n" ]
 then
     exit
 fi
-
-cd ./effprog
 
 for tag in $TAGS
 do
