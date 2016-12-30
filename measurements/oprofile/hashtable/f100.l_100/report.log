@@ -3,11 +3,11 @@ Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with a unit mask 
 CPU_CLK_UNHALT...|
   samples|      %|
 ------------------
-     5911 100.000 life
+     5984 100.000 life
 	CPU_CLK_UNHALT...|
 	  samples|      %|
 	------------------
-	     5611 94.9247 life
-	      235  3.9756 libc-2.21.so
-	       62  1.0489 kallsyms
-	        3  0.0508 ld-2.21.so
+	     5659 94.5689 life
+	      249  4.1611 libc-2.21.so
+	       74  1.2366 kallsyms
+	        2  0.0334 ld-2.21.so
