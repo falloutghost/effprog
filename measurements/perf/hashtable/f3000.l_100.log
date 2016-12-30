@@ -3,16 +3,16 @@ failed to read counter L1-dcache-store-misses
 
  Performance counter stats for './life 100':
 
-    11.706.704.328      cycles:u                                                      (33,34%)
-        70.380.019      cycles:k                                                      (44,47%)
-    13.290.032.139      instructions:u            #    1,14  insns per cycle          (55,57%)
-        45.897.463      branch-misses                                                 (55,57%)
-       280.943.499      L1-dcache-load-misses                                         (55,57%)
+    11.670.877.593      cycles:u                                                      (33,32%)
+        57.912.971      cycles:k                                                      (44,43%)
+    13.367.040.619      instructions:u            #    1,15  insns per cycle          (55,55%)
+        46.090.841      branch-misses                                                 (55,55%)
+       279.664.484      L1-dcache-load-misses                                         (55,55%)
    <not supported>      L1-dcache-store-misses   
-        95.967.138      LLC-loads                                                     (55,57%)
-           109.061      LLC-stores                                                    (55,55%)
-           749.698      LLC-load-misses           #    0,78% of all LL-cache hits     (22,28%)
-             5.457      LLC-store-misses                                              (22,25%)
+        97.301.623      LLC-loads                                                     (55,57%)
+           111.606      LLC-stores                                                    (55,70%)
+           735.709      LLC-load-misses           #    0,76% of all LL-cache hits     (22,25%)
+             6.344      LLC-store-misses                                              (22,23%)
 
-       3,529956402 seconds time elapsed
+       3,527859522 seconds time elapsed
 

@@ -86,6 +86,7 @@ do
     git checkout master
     git merge ${tag}_report --strategy-option theirs
     git branch -d ${tag}_report
+    exit
 done
 
 print_heading "Cleaning up"

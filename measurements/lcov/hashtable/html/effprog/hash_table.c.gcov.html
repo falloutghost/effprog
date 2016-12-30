@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2016-12-30 15:57:39</td>
+            <td class="headerValue">2016-12-30 16:25:41</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">14</td>
@@ -93,7 +93,7 @@
 <span class="lineNum">      31 </span>            : static inline int
 <span class="lineNum">      32 </span>            : is_pow2(size_t n)
 <span class="lineNum">      33 </span>            : {
-<span class="lineNum">      34 </span><span class="lineCov">         16 :     return n != 0 &amp;&amp; (n &amp; (n - 1)) == 0;</span>
+<span class="lineNum">      34 </span><span class="lineCov">         32 :     return n != 0 &amp;&amp; (n &amp; (n - 1)) == 0;</span>
 <span class="lineNum">      35 </span>            : }
 <span class="lineNum">      36 </span>            : 
 <span class="lineNum">      37 </span>            : /**
@@ -104,7 +104,7 @@
 <span class="lineNum">      42 </span>            : static inline size_t
 <span class="lineNum">      43 </span>            : ceil_pow2(size_t n)
 <span class="lineNum">      44 </span>            : {
-<span class="lineNum">      45 </span><span class="lineCov">         16 :     while (!is_pow2(n)) {</span>
+<span class="lineNum">      45 </span><span class="lineCov">         32 :     while (!is_pow2(n)) {</span>
 <span class="lineNum">      46 </span><span class="lineNoCov">          0 :         n = (n &amp; (n - 1));</span>
 <span class="lineNum">      47 </span>            :     }
 <span class="lineNum">      48 </span>            :     return n;
@@ -120,7 +120,7 @@
 <span class="lineNum">      58 </span>            : bucket_idx(hash_table *tbl, const hash_table_key_t key)
 <span class="lineNum">      59 </span>            : {
 <span class="lineNum">      60 </span>            :     assert(is_pow2(tbl-&gt;num_buckets));
-<span class="lineNum">      61 </span><span class="lineCov">  160820812 :     return tbl-&gt;hash_func(key) &amp; (tbl-&gt;num_buckets - 1);</span>
+<span class="lineNum">      61 </span><span class="lineCov">  321641624 :     return tbl-&gt;hash_func(key) &amp; (tbl-&gt;num_buckets - 1);</span>
 <span class="lineNum">      62 </span>            : }
 <span class="lineNum">      63 </span>            : 
 <span class="lineNum">      64 </span>            : /**
@@ -137,16 +137,16 @@
 <span class="lineNum">      75 </span>            :     hash_table_elem *new_elem;
 <span class="lineNum">      76 </span>            : 
 <span class="lineNum">      77 </span>            :     // allocate heap memory
-<span class="lineNum">      78 </span><span class="lineCov">    2066357 :     new_elem = (hash_table_elem *)malloc(sizeof(hash_table_elem));</span>
-<span class="lineNum">      79 </span><span class="lineCov">    2066357 :     if (new_elem == NULL) {</span>
+<span class="lineNum">      78 </span><span class="lineCov">    4132714 :     new_elem = (hash_table_elem *)malloc(sizeof(hash_table_elem));</span>
+<span class="lineNum">      79 </span><span class="lineCov">    4132714 :     if (new_elem == NULL) {</span>
 <span class="lineNum">      80 </span>            :         return NULL;
 <span class="lineNum">      81 </span>            :     }
 <span class="lineNum">      82 </span>            : 
 <span class="lineNum">      83 </span>            :     // set struct members
-<span class="lineNum">      84 </span><span class="lineCov">    2066357 :     new_elem-&gt;entry.key = key;</span>
-<span class="lineNum">      85 </span><span class="lineCov">    2066357 :     new_elem-&gt;entry.val = val;</span>
-<span class="lineNum">      86 </span><span class="lineCov">    2066357 :     new_elem-&gt;bucket_idx = bucket_idx;</span>
-<span class="lineNum">      87 </span><span class="lineCov">    2066357 :     new_elem-&gt;next = NULL;</span>
+<span class="lineNum">      84 </span><span class="lineCov">    4132714 :     new_elem-&gt;entry.key = key;</span>
+<span class="lineNum">      85 </span><span class="lineCov">    4132714 :     new_elem-&gt;entry.val = val;</span>
+<span class="lineNum">      86 </span><span class="lineCov">    4132714 :     new_elem-&gt;bucket_idx = bucket_idx;</span>
+<span class="lineNum">      87 </span><span class="lineCov">    4132714 :     new_elem-&gt;next = NULL;</span>
 <span class="lineNum">      88 </span>            : 
 <span class="lineNum">      89 </span>            :     return new_elem;
 <span class="lineNum">      90 </span>            : }
@@ -158,15 +158,15 @@
 <span class="lineNum">      96 </span>            :  * @return the hash table element or NULL if no element for the given key was found.
 <a name="97"><span class="lineNum">      97 </span>            :  */</a>
 <span class="lineNum">      98 </span>            : static inline hash_table_elem *
-<span class="lineNum">      99 </span><span class="lineCov">  153974244 : find_elem(hash_table *tbl, const hash_table_key_t key)</span>
+<span class="lineNum">      99 </span><span class="lineCov">  307948488 : find_elem(hash_table *tbl, const hash_table_key_t key)</span>
 <span class="lineNum">     100 </span>            : {
 <span class="lineNum">     101 </span>            :     hash_table_elem *e;
 <span class="lineNum">     102 </span>            :     size_t idx;
 <span class="lineNum">     103 </span>            : 
-<span class="lineNum">     104 </span><span class="lineCov">  307948488 :     idx = bucket_idx(tbl, key);</span>
+<span class="lineNum">     104 </span><span class="lineCov">  615896976 :     idx = bucket_idx(tbl, key);</span>
 <span class="lineNum">     105 </span>            : 
-<span class="lineNum">     106 </span><span class="lineCov"> 1142374603 :     for (e = tbl-&gt;buckets[idx]; e != NULL; e = e-&gt;next) {</span>
-<span class="lineNum">     107 </span><span class="lineCov"> 1038637412 :         if (tbl-&gt;cmp_func(e-&gt;entry.key, key) == 0) {</span>
+<span class="lineNum">     106 </span><span class="lineCov"> 2284749206 :     for (e = tbl-&gt;buckets[idx]; e != NULL; e = e-&gt;next) {</span>
+<span class="lineNum">     107 </span><span class="lineCov"> 2077274824 :         if (tbl-&gt;cmp_func(e-&gt;entry.key, key) == 0) {</span>
 <span class="lineNum">     108 </span>            :             return e;
 <span class="lineNum">     109 </span>            :         }
 <span class="lineNum">     110 </span>            :     }
@@ -186,12 +186,12 @@
 <span class="lineNum">     124 </span>            :     size_t idx;
 <span class="lineNum">     125 </span>            : 
 <span class="lineNum">     126 </span>            :     // case 1: bucket contains another element
-<span class="lineNum">     127 </span><span class="lineCov">    4125858 :     if (current != NULL &amp;&amp; current-&gt;next != NULL) {</span>
+<span class="lineNum">     127 </span><span class="lineCov">    8251716 :     if (current != NULL &amp;&amp; current-&gt;next != NULL) {</span>
 <span class="lineNum">     128 </span>            :         return current-&gt;next;
 <span class="lineNum">     129 </span>            :     }
 <span class="lineNum">     130 </span>            :     // case 2: look for next non-empty bucket
-<span class="lineNum">     131 </span><span class="lineCov">     825776 :     for (idx = bucket_idx + 1; idx &lt; tbl-&gt;num_buckets; ++idx) {</span>
-<span class="lineNum">     132 </span><span class="lineCov">     825776 :         if (tbl-&gt;buckets[idx] != NULL) {</span>
+<span class="lineNum">     131 </span><span class="lineCov">    1651552 :     for (idx = bucket_idx + 1; idx &lt; tbl-&gt;num_buckets; ++idx) {</span>
+<span class="lineNum">     132 </span><span class="lineCov">    1651552 :         if (tbl-&gt;buckets[idx] != NULL) {</span>
 <span class="lineNum">     133 </span>            :             return tbl-&gt;buckets[idx];
 <span class="lineNum">     134 </span>            :         }
 <span class="lineNum">     135 </span>            :     }
@@ -206,7 +206,7 @@
 <span class="lineNum">     144 </span>            : static inline hash_table_elem *
 <span class="lineNum">     145 </span>            : first_elem(hash_table *tbl)
 <span class="lineNum">     146 </span>            : {
-<span class="lineNum">     147 </span><span class="lineCov">       1616 :     if (hash_table_size(tbl) == 0) {</span>
+<span class="lineNum">     147 </span><span class="lineCov">       3232 :     if (hash_table_size(tbl) == 0) {</span>
 <span class="lineNum">     148 </span>            :         return NULL;
 <span class="lineNum">     149 </span>            :     }
 <span class="lineNum">     150 </span>            :     return next_elem(tbl, NULL, 0);
@@ -217,102 +217,102 @@
 <span class="lineNum">     155 </span>            :  * @param tbl the hash table.
 <a name="156"><span class="lineNum">     156 </span>            :  */</a>
 <span class="lineNum">     157 </span>            : static inline void
-<span class="lineNum">     158 </span><span class="lineCov">        816 : free_elems(hash_table *tbl)</span>
+<span class="lineNum">     158 </span><span class="lineCov">       1632 : free_elems(hash_table *tbl)</span>
 <span class="lineNum">     159 </span>            : {
 <span class="lineNum">     160 </span>            :     int i;
 <span class="lineNum">     161 </span>            :     hash_table_elem *p, *e;
 <span class="lineNum">     162 </span>            : 
 <span class="lineNum">     163 </span>            :     // free hash table elements first
-<span class="lineNum">     164 </span><span class="lineCov">     418608 :     for (i = 0; i &lt; tbl-&gt;num_buckets; ++i) {</span>
-<span class="lineNum">     165 </span><span class="lineCov">     417792 :         p = tbl-&gt;buckets[i];</span>
-<span class="lineNum">     166 </span><span class="lineCov">    2484149 :         while (p != NULL) {</span>
-<span class="lineNum">     167 </span><span class="lineCov">    2066357 :             e = p-&gt;next;</span>
-<span class="lineNum">     168 </span><span class="lineCov">    2066357 :             free(p);</span>
-<span class="lineNum">     169 </span><span class="lineCov">    2066357 :             p = e;</span>
+<span class="lineNum">     164 </span><span class="lineCov">     837216 :     for (i = 0; i &lt; tbl-&gt;num_buckets; ++i) {</span>
+<span class="lineNum">     165 </span><span class="lineCov">     835584 :         p = tbl-&gt;buckets[i];</span>
+<span class="lineNum">     166 </span><span class="lineCov">    4968298 :         while (p != NULL) {</span>
+<span class="lineNum">     167 </span><span class="lineCov">    4132714 :             e = p-&gt;next;</span>
+<span class="lineNum">     168 </span><span class="lineCov">    4132714 :             free(p);</span>
+<span class="lineNum">     169 </span><span class="lineCov">    4132714 :             p = e;</span>
 <span class="lineNum">     170 </span>            :         }
-<span class="lineNum">     171 </span><span class="lineCov">     417792 :         tbl-&gt;buckets[i] = NULL;</span>
+<span class="lineNum">     171 </span><span class="lineCov">     835584 :         tbl-&gt;buckets[i] = NULL;</span>
 <span class="lineNum">     172 </span>            :     }
-<span class="lineNum">     173 </span><span class="lineCov">        816 : }</span>
+<span class="lineNum">     173 </span><span class="lineCov">       1632 : }</span>
 <a name="174"><span class="lineNum">     174 </span>            : </a>
 <span class="lineNum">     175 </span>            : hash_table *
-<span class="lineNum">     176 </span><span class="lineCov">         16 : hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function *cmp_func)</span>
+<span class="lineNum">     176 </span><span class="lineCov">         32 : hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function *cmp_func)</span>
 <span class="lineNum">     177 </span>            : {
 <span class="lineNum">     178 </span>            :     hash_table *tbl;
 <span class="lineNum">     179 </span>            : 
 <span class="lineNum">     180 </span>            :     // round num. of buckets to next power of two (for efficiency reasons)
-<span class="lineNum">     181 </span><span class="lineCov">         16 :     num_buckets = ceil_pow2(num_buckets);</span>
+<span class="lineNum">     181 </span><span class="lineCov">         32 :     num_buckets = ceil_pow2(num_buckets);</span>
 <span class="lineNum">     182 </span>            : 
 <span class="lineNum">     183 </span>            :     // allocate hash table first
-<span class="lineNum">     184 </span><span class="lineCov">         16 :     tbl = malloc(sizeof(hash_table));</span>
-<span class="lineNum">     185 </span><span class="lineCov">         16 :     if (tbl == NULL) {</span>
+<span class="lineNum">     184 </span><span class="lineCov">         32 :     tbl = malloc(sizeof(hash_table));</span>
+<span class="lineNum">     185 </span><span class="lineCov">         32 :     if (tbl == NULL) {</span>
 <span class="lineNum">     186 </span>            :         return NULL;
 <span class="lineNum">     187 </span>            :     }
 <span class="lineNum">     188 </span>            : 
 <span class="lineNum">     189 </span>            :     // allocate buckets
-<span class="lineNum">     190 </span><span class="lineCov">         16 :     tbl-&gt;buckets = (hash_table_elem **)calloc(num_buckets, sizeof(hash_table_elem *));</span>
-<span class="lineNum">     191 </span><span class="lineCov">         16 :     if (tbl-&gt;buckets == NULL) {</span>
+<span class="lineNum">     190 </span><span class="lineCov">         32 :     tbl-&gt;buckets = (hash_table_elem **)calloc(num_buckets, sizeof(hash_table_elem *));</span>
+<span class="lineNum">     191 </span><span class="lineCov">         32 :     if (tbl-&gt;buckets == NULL) {</span>
 <span class="lineNum">     192 </span><span class="lineNoCov">          0 :         free(tbl);</span>
 <span class="lineNum">     193 </span><span class="lineNoCov">          0 :         return NULL;</span>
 <span class="lineNum">     194 </span>            :     }
 <span class="lineNum">     195 </span>            : 
 <span class="lineNum">     196 </span>            :     // set values for hash table struct members
-<span class="lineNum">     197 </span><span class="lineCov">         16 :     tbl-&gt;num_buckets = num_buckets;</span>
-<span class="lineNum">     198 </span><span class="lineCov">         16 :     tbl-&gt;num_elems = 0;</span>
-<span class="lineNum">     199 </span><span class="lineCov">         16 :     tbl-&gt;hash_func = hash_func;</span>
-<span class="lineNum">     200 </span><span class="lineCov">         16 :     tbl-&gt;cmp_func = cmp_func;</span>
+<span class="lineNum">     197 </span><span class="lineCov">         32 :     tbl-&gt;num_buckets = num_buckets;</span>
+<span class="lineNum">     198 </span><span class="lineCov">         32 :     tbl-&gt;num_elems = 0;</span>
+<span class="lineNum">     199 </span><span class="lineCov">         32 :     tbl-&gt;hash_func = hash_func;</span>
+<span class="lineNum">     200 </span><span class="lineCov">         32 :     tbl-&gt;cmp_func = cmp_func;</span>
 <span class="lineNum">     201 </span>            : 
-<span class="lineNum">     202 </span><span class="lineCov">         16 :     return tbl;</span>
+<span class="lineNum">     202 </span><span class="lineCov">         32 :     return tbl;</span>
 <span class="lineNum">     203 </span>            : }
 <a name="204"><span class="lineNum">     204 </span>            : </a>
 <span class="lineNum">     205 </span>            : int
-<span class="lineNum">     206 </span><span class="lineCov">    6846568 : hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val)</span>
+<span class="lineNum">     206 </span><span class="lineCov">   13693136 : hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val)</span>
 <span class="lineNum">     207 </span>            : {
 <span class="lineNum">     208 </span>            :     hash_table_elem *elem, *prev_elem, *new_elem;
 <span class="lineNum">     209 </span>            :     size_t idx;
 <span class="lineNum">     210 </span>            :     int cmp_val;
 <span class="lineNum">     211 </span>            : 
-<span class="lineNum">     212 </span><span class="lineCov">   13693136 :     idx = bucket_idx(tbl, key);</span>
+<span class="lineNum">     212 </span><span class="lineCov">   27386272 :     idx = bucket_idx(tbl, key);</span>
 <span class="lineNum">     213 </span>            : 
 <span class="lineNum">     214 </span>            :     // handle empty bucket case
-<span class="lineNum">     215 </span><span class="lineCov">    6846568 :     if (tbl-&gt;buckets[idx] == NULL) {</span>
-<span class="lineNum">     216 </span><span class="lineCov">     695902 :         new_elem = create_elem(tbl, key, val, idx);</span>
-<span class="lineNum">     217 </span><span class="lineCov">     347951 :         if (new_elem == NULL) {</span>
+<span class="lineNum">     215 </span><span class="lineCov">   13693136 :     if (tbl-&gt;buckets[idx] == NULL) {</span>
+<span class="lineNum">     216 </span><span class="lineCov">    1391804 :         new_elem = create_elem(tbl, key, val, idx);</span>
+<span class="lineNum">     217 </span><span class="lineCov">     695902 :         if (new_elem == NULL) {</span>
 <span class="lineNum">     218 </span>            :             return 0;
 <span class="lineNum">     219 </span>            :         }
-<span class="lineNum">     220 </span><span class="lineCov">     347951 :         tbl-&gt;buckets[idx] = new_elem;</span>
-<span class="lineNum">     221 </span><span class="lineCov">     347951 :         tbl-&gt;num_elems++;</span>
-<span class="lineNum">     222 </span><span class="lineCov">     347951 :         return 1;</span>
+<span class="lineNum">     220 </span><span class="lineCov">     695902 :         tbl-&gt;buckets[idx] = new_elem;</span>
+<span class="lineNum">     221 </span><span class="lineCov">     695902 :         tbl-&gt;num_elems++;</span>
+<span class="lineNum">     222 </span><span class="lineCov">     695902 :         return 1;</span>
 <span class="lineNum">     223 </span>            :     }
 <span class="lineNum">     224 </span>            : 
 <span class="lineNum">     225 </span>            :     // target bucket is not empty =&gt; find correct position in bucket
-<span class="lineNum">     226 </span><span class="lineCov">   21348464 :     for (elem = tbl-&gt;buckets[idx], prev_elem = NULL; elem != NULL; prev_elem = elem, elem = elem-&gt;next) {</span>
-<span class="lineNum">     227 </span><span class="lineCov">   27338458 :         cmp_val = tbl-&gt;cmp_func(elem-&gt;entry.key, key);</span>
-<span class="lineNum">     228 </span><span class="lineCov">   27338458 :         if (cmp_val &gt;= 0)</span>
+<span class="lineNum">     226 </span><span class="lineCov">   42696928 :     for (elem = tbl-&gt;buckets[idx], prev_elem = NULL; elem != NULL; prev_elem = elem, elem = elem-&gt;next) {</span>
+<span class="lineNum">     227 </span><span class="lineCov">   54676916 :         cmp_val = tbl-&gt;cmp_func(elem-&gt;entry.key, key);</span>
+<span class="lineNum">     228 </span><span class="lineCov">   54676916 :         if (cmp_val &gt;= 0)</span>
 <span class="lineNum">     229 </span>            :             break;
 <span class="lineNum">     230 </span>            :     }
 <span class="lineNum">     231 </span>            : 
 <span class="lineNum">     232 </span>            :     // found equal element =&gt; replace value
-<span class="lineNum">     233 </span><span class="lineCov">    6498617 :     if (cmp_val == 0) {</span>
+<span class="lineNum">     233 </span><span class="lineCov">   12997234 :     if (cmp_val == 0) {</span>
 <span class="lineNum">     234 </span>            :         // replace value of element
-<span class="lineNum">     235 </span><span class="lineCov">    4780211 :         elem-&gt;entry.val = val;</span>
-<span class="lineNum">     236 </span><span class="lineCov">    4780211 :         return 1;</span>
+<span class="lineNum">     235 </span><span class="lineCov">    9560422 :         elem-&gt;entry.val = val;</span>
+<span class="lineNum">     236 </span><span class="lineCov">    9560422 :         return 1;</span>
 <span class="lineNum">     237 </span>            :     }
 <span class="lineNum">     238 </span>            : 
 <span class="lineNum">     239 </span>            :     // found greater element =&gt; insert new element into bucket before the found element
-<span class="lineNum">     240 </span><span class="lineCov">    3436812 :     new_elem = create_elem(tbl, key, val, idx);</span>
-<span class="lineNum">     241 </span><span class="lineCov">    1718406 :     if (new_elem == NULL) {</span>
+<span class="lineNum">     240 </span><span class="lineCov">    6873624 :     new_elem = create_elem(tbl, key, val, idx);</span>
+<span class="lineNum">     241 </span><span class="lineCov">    3436812 :     if (new_elem == NULL) {</span>
 <span class="lineNum">     242 </span>            :         return 0;
 <span class="lineNum">     243 </span>            :     }
-<span class="lineNum">     244 </span><span class="lineCov">    1718406 :     if (prev_elem == NULL) {</span>
+<span class="lineNum">     244 </span><span class="lineCov">    3436812 :     if (prev_elem == NULL) {</span>
 <span class="lineNum">     245 </span>            :         // insert as head
-<span class="lineNum">     246 </span><span class="lineCov">     383813 :         new_elem-&gt;next = tbl-&gt;buckets[idx];</span>
-<span class="lineNum">     247 </span><span class="lineCov">     383813 :         tbl-&gt;buckets[idx] = new_elem;</span>
+<span class="lineNum">     246 </span><span class="lineCov">     767626 :         new_elem-&gt;next = tbl-&gt;buckets[idx];</span>
+<span class="lineNum">     247 </span><span class="lineCov">     767626 :         tbl-&gt;buckets[idx] = new_elem;</span>
 <span class="lineNum">     248 </span>            :     } else {
-<span class="lineNum">     249 </span><span class="lineCov">    1334593 :         new_elem-&gt;next = prev_elem-&gt;next;</span>
-<span class="lineNum">     250 </span><span class="lineCov">    1334593 :         prev_elem-&gt;next = new_elem;</span>
+<span class="lineNum">     249 </span><span class="lineCov">    2669186 :         new_elem-&gt;next = prev_elem-&gt;next;</span>
+<span class="lineNum">     250 </span><span class="lineCov">    2669186 :         prev_elem-&gt;next = new_elem;</span>
 <span class="lineNum">     251 </span>            :     }
-<span class="lineNum">     252 </span><span class="lineCov">    1718406 :     tbl-&gt;num_elems++;</span>
-<span class="lineNum">     253 </span><span class="lineCov">    1718406 :     return 1;</span>
+<span class="lineNum">     252 </span><span class="lineCov">    3436812 :     tbl-&gt;num_elems++;</span>
+<span class="lineNum">     253 </span><span class="lineCov">    3436812 :     return 1;</span>
 <span class="lineNum">     254 </span>            : }
 <a name="255"><span class="lineNum">     255 </span>            : </a>
 <span class="lineNum">     256 </span>            : hash_table_val_t
@@ -323,9 +323,9 @@
 <span class="lineNum">     261 </span>            : }
 <a name="262"><span class="lineNum">     262 </span>            : </a>
 <span class="lineNum">     263 </span>            : int
-<span class="lineNum">     264 </span><span class="lineCov">  153974244 : hash_table_contains(hash_table *tbl, const hash_table_key_t key)</span>
+<span class="lineNum">     264 </span><span class="lineCov">  307948488 : hash_table_contains(hash_table *tbl, const hash_table_key_t key)</span>
 <span class="lineNum">     265 </span>            : {
-<span class="lineNum">     266 </span><span class="lineCov">  153974244 :     return find_elem(tbl, key) != NULL;</span>
+<span class="lineNum">     266 </span><span class="lineCov">  307948488 :     return find_elem(tbl, key) != NULL;</span>
 <span class="lineNum">     267 </span>            : }
 <a name="268"><span class="lineNum">     268 </span>            : </a>
 <span class="lineNum">     269 </span>            : hash_table_val_t
@@ -361,70 +361,70 @@
 <span class="lineNum">     299 </span>            : }
 <a name="300"><span class="lineNum">     300 </span>            : </a>
 <span class="lineNum">     301 </span>            : void
-<span class="lineNum">     302 </span><span class="lineCov">        808 : hash_table_map(hash_table *tbl, map_function map_func)</span>
+<span class="lineNum">     302 </span><span class="lineCov">       1616 : hash_table_map(hash_table *tbl, map_function map_func)</span>
 <span class="lineNum">     303 </span>            : {
 <span class="lineNum">     304 </span>            :     hash_table_iter iter;
 <span class="lineNum">     305 </span>            :     hash_table_entry entry;
 <span class="lineNum">     306 </span>            : 
 <span class="lineNum">     307 </span>            :     hash_table_iterator_init(tbl, &amp;iter);
-<span class="lineNum">     308 </span><span class="lineCov">    2063737 :     while (hash_table_iterator_has_next(&amp;iter)) {</span>
-<span class="lineNum">     309 </span><span class="lineCov">    2062929 :         hash_table_iterator_next(&amp;iter);</span>
-<span class="lineNum">     310 </span><span class="lineCov">    2062929 :         hash_table_iterator_get(&amp;iter, &amp;entry);</span>
-<span class="lineNum">     311 </span><span class="lineCov">    2062929 :         map_func(&amp;entry);</span>
+<span class="lineNum">     308 </span><span class="lineCov">    4127474 :     while (hash_table_iterator_has_next(&amp;iter)) {</span>
+<span class="lineNum">     309 </span><span class="lineCov">    4125858 :         hash_table_iterator_next(&amp;iter);</span>
+<span class="lineNum">     310 </span><span class="lineCov">    4125858 :         hash_table_iterator_get(&amp;iter, &amp;entry);</span>
+<span class="lineNum">     311 </span><span class="lineCov">    4125858 :         map_func(&amp;entry);</span>
 <span class="lineNum">     312 </span>            :     }
-<span class="lineNum">     313 </span><span class="lineCov">        808 : }</span>
+<span class="lineNum">     313 </span><span class="lineCov">       1616 : }</span>
 <a name="314"><span class="lineNum">     314 </span>            : </a>
 <span class="lineNum">     315 </span>            : size_t
-<span class="lineNum">     316 </span><span class="lineCov">          8 : hash_table_size(hash_table *tbl)</span>
+<span class="lineNum">     316 </span><span class="lineCov">         16 : hash_table_size(hash_table *tbl)</span>
 <span class="lineNum">     317 </span>            : {
-<span class="lineNum">     318 </span><span class="lineCov">       1624 :     return tbl-&gt;num_elems;</span>
+<span class="lineNum">     318 </span><span class="lineCov">       3248 :     return tbl-&gt;num_elems;</span>
 <span class="lineNum">     319 </span>            : }
 <a name="320"><span class="lineNum">     320 </span>            : </a>
 <span class="lineNum">     321 </span>            : void
-<span class="lineNum">     322 </span><span class="lineCov">        808 : hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter)</span>
+<span class="lineNum">     322 </span><span class="lineCov">       1616 : hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter)</span>
 <span class="lineNum">     323 </span>            : {
-<span class="lineNum">     324 </span><span class="lineCov">       1616 :     iter-&gt;tbl = tbl;</span>
-<span class="lineNum">     325 </span><span class="lineCov">       1616 :     iter-&gt;current = NULL;</span>
-<span class="lineNum">     326 </span><span class="lineCov">       1616 :     iter-&gt;bucket_idx = 0;</span>
-<span class="lineNum">     327 </span><span class="lineCov">       1616 :     iter-&gt;next = first_elem(tbl);</span>
-<span class="lineNum">     328 </span><span class="lineCov">        808 : }</span>
+<span class="lineNum">     324 </span><span class="lineCov">       3232 :     iter-&gt;tbl = tbl;</span>
+<span class="lineNum">     325 </span><span class="lineCov">       3232 :     iter-&gt;current = NULL;</span>
+<span class="lineNum">     326 </span><span class="lineCov">       3232 :     iter-&gt;bucket_idx = 0;</span>
+<span class="lineNum">     327 </span><span class="lineCov">       3232 :     iter-&gt;next = first_elem(tbl);</span>
+<span class="lineNum">     328 </span><span class="lineCov">       1616 : }</span>
 <a name="329"><span class="lineNum">     329 </span>            : </a>
 <span class="lineNum">     330 </span>            : int
-<span class="lineNum">     331 </span><span class="lineCov">    2063737 : hash_table_iterator_has_next(hash_table_iter *iter)</span>
+<span class="lineNum">     331 </span><span class="lineCov">    4127474 : hash_table_iterator_has_next(hash_table_iter *iter)</span>
 <span class="lineNum">     332 </span>            : {
-<span class="lineNum">     333 </span><span class="lineCov">    4127474 :     return (iter-&gt;next != NULL);</span>
+<span class="lineNum">     333 </span><span class="lineCov">    8254948 :     return (iter-&gt;next != NULL);</span>
 <span class="lineNum">     334 </span>            : }
 <a name="335"><span class="lineNum">     335 </span>            : </a>
 <span class="lineNum">     336 </span>            : void
-<span class="lineNum">     337 </span><span class="lineCov">    4125858 : hash_table_iterator_next(hash_table_iter *iter)</span>
+<span class="lineNum">     337 </span><span class="lineCov">    8251716 : hash_table_iterator_next(hash_table_iter *iter)</span>
 <span class="lineNum">     338 </span>            : {
-<span class="lineNum">     339 </span><span class="lineCov">    4125858 :     if (iter-&gt;next == NULL) {</span>
+<span class="lineNum">     339 </span><span class="lineCov">    8251716 :     if (iter-&gt;next == NULL) {</span>
 <span class="lineNum">     340 </span>            :         return;
 <span class="lineNum">     341 </span>            :     }
 <span class="lineNum">     342 </span>            : 
-<span class="lineNum">     343 </span><span class="lineCov">    4125858 :     iter-&gt;current = iter-&gt;next;</span>
-<span class="lineNum">     344 </span><span class="lineCov">    4125858 :     iter-&gt;bucket_idx = iter-&gt;next-&gt;bucket_idx;</span>
-<span class="lineNum">     345 </span><span class="lineCov">    8251716 :     iter-&gt;next = next_elem(iter-&gt;tbl, iter-&gt;current, iter-&gt;bucket_idx);</span>
+<span class="lineNum">     343 </span><span class="lineCov">    8251716 :     iter-&gt;current = iter-&gt;next;</span>
+<span class="lineNum">     344 </span><span class="lineCov">    8251716 :     iter-&gt;bucket_idx = iter-&gt;next-&gt;bucket_idx;</span>
+<span class="lineNum">     345 </span><span class="lineCov">   16503432 :     iter-&gt;next = next_elem(iter-&gt;tbl, iter-&gt;current, iter-&gt;bucket_idx);</span>
 <span class="lineNum">     346 </span>            : }
 <a name="347"><span class="lineNum">     347 </span>            : </a>
 <span class="lineNum">     348 </span>            : void
 <span class="lineNum">     349 </span><span class="lineNoCov">          0 : hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out)</span>
 <span class="lineNum">     350 </span>            : {
-<span class="lineNum">     351 </span><span class="lineCov">    2062929 :     if (iter-&gt;current == NULL) {</span>
+<span class="lineNum">     351 </span><span class="lineCov">    4125858 :     if (iter-&gt;current == NULL) {</span>
 <span class="lineNum">     352 </span><span class="lineNoCov">          0 :         out-&gt;key = NULL;</span>
 <span class="lineNum">     353 </span><span class="lineNoCov">          0 :         out-&gt;val = NULL;</span>
 <span class="lineNum">     354 </span>            :     }
-<span class="lineNum">     355 </span><span class="lineCov">    2062929 :     out-&gt;key = iter-&gt;current-&gt;entry.key;</span>
-<span class="lineNum">     356 </span><span class="lineCov">    2062929 :     out-&gt;val = iter-&gt;current-&gt;entry.val;</span>
+<span class="lineNum">     355 </span><span class="lineCov">    4125858 :     out-&gt;key = iter-&gt;current-&gt;entry.key;</span>
+<span class="lineNum">     356 </span><span class="lineCov">    4125858 :     out-&gt;val = iter-&gt;current-&gt;entry.val;</span>
 <span class="lineNum">     357 </span><span class="lineNoCov">          0 : }</span>
 <a name="358"><span class="lineNum">     358 </span>            : </a>
 <span class="lineNum">     359 </span>            : hash_table_key_t
-<span class="lineNum">     360 </span><span class="lineCov">    2062929 : hash_table_iterator_get_key(hash_table_iter *iter)</span>
+<span class="lineNum">     360 </span><span class="lineCov">    4125858 : hash_table_iterator_get_key(hash_table_iter *iter)</span>
 <span class="lineNum">     361 </span>            : {
-<span class="lineNum">     362 </span><span class="lineCov">    2062929 :     if (iter-&gt;current == NULL) {</span>
+<span class="lineNum">     362 </span><span class="lineCov">    4125858 :     if (iter-&gt;current == NULL) {</span>
 <span class="lineNum">     363 </span>            :         return NULL;
 <span class="lineNum">     364 </span>            :     }
-<span class="lineNum">     365 </span><span class="lineCov">    2062929 :     return iter-&gt;current-&gt;entry.key;</span>
+<span class="lineNum">     365 </span><span class="lineCov">    4125858 :     return iter-&gt;current-&gt;entry.key;</span>
 <span class="lineNum">     366 </span>            : }
 <a name="367"><span class="lineNum">     367 </span>            : </a>
 <span class="lineNum">     368 </span>            : hash_table_val_t
@@ -437,38 +437,38 @@
 <span class="lineNum">     375 </span>            : }
 <a name="376"><span class="lineNum">     376 </span>            : </a>
 <span class="lineNum">     377 </span>            : void
-<span class="lineNum">     378 </span><span class="lineCov">        800 : hash_table_clear(hash_table *tbl)</span>
+<span class="lineNum">     378 </span><span class="lineCov">       1600 : hash_table_clear(hash_table *tbl)</span>
 <span class="lineNum">     379 </span>            : {
-<span class="lineNum">     380 </span><span class="lineCov">        800 :     free_elems(tbl);</span>
-<span class="lineNum">     381 </span><span class="lineCov">        800 :     tbl-&gt;num_elems = 0;</span>
-<span class="lineNum">     382 </span><span class="lineCov">        800 : }</span>
+<span class="lineNum">     380 </span><span class="lineCov">       1600 :     free_elems(tbl);</span>
+<span class="lineNum">     381 </span><span class="lineCov">       1600 :     tbl-&gt;num_elems = 0;</span>
+<span class="lineNum">     382 </span><span class="lineCov">       1600 : }</span>
 <a name="383"><span class="lineNum">     383 </span>            : </a>
 <span class="lineNum">     384 </span>            : void
-<span class="lineNum">     385 </span><span class="lineCov">         16 : hash_table_destroy(hash_table *tbl)</span>
+<span class="lineNum">     385 </span><span class="lineCov">         32 : hash_table_destroy(hash_table *tbl)</span>
 <span class="lineNum">     386 </span>            : {
 <span class="lineNum">     387 </span>            :     // free hash table elements first
-<span class="lineNum">     388 </span><span class="lineCov">         16 :     free_elems(tbl);</span>
+<span class="lineNum">     388 </span><span class="lineCov">         32 :     free_elems(tbl);</span>
 <span class="lineNum">     389 </span>            : 
 <span class="lineNum">     390 </span>            :     // free bucket array
-<span class="lineNum">     391 </span><span class="lineCov">         16 :     free(tbl-&gt;buckets);</span>
-<span class="lineNum">     392 </span><span class="lineCov">         16 :     tbl-&gt;buckets = NULL;</span>
+<span class="lineNum">     391 </span><span class="lineCov">         32 :     free(tbl-&gt;buckets);</span>
+<span class="lineNum">     392 </span><span class="lineCov">         32 :     tbl-&gt;buckets = NULL;</span>
 <span class="lineNum">     393 </span>            : 
 <span class="lineNum">     394 </span>            :     // free hash table
-<span class="lineNum">     395 </span><span class="lineCov">         16 :     free(tbl);</span>
-<span class="lineNum">     396 </span><span class="lineCov">         16 :     tbl = NULL;</span>
-<span class="lineNum">     397 </span><span class="lineCov">         16 : }</span>
+<span class="lineNum">     395 </span><span class="lineCov">         32 :     free(tbl);</span>
+<span class="lineNum">     396 </span><span class="lineCov">         32 :     tbl = NULL;</span>
+<span class="lineNum">     397 </span><span class="lineCov">         32 : }</span>
 <a name="398"><span class="lineNum">     398 </span>            : </a>
 <span class="lineNum">     399 </span>            : unsigned int
-<span class="lineNum">     400 </span><span class="lineCov">  321641624 : hash_bytes(const void *data, size_t size)</span>
+<span class="lineNum">     400 </span><span class="lineCov">  643283248 : hash_bytes(const void *data, size_t size)</span>
 <span class="lineNum">     401 </span>            : {
 <span class="lineNum">     402 </span>            :     unsigned int hash;
-<span class="lineNum">     403 </span><span class="lineCov">  321641624 :     unsigned char *_data = (unsigned char *)data;</span>
+<span class="lineNum">     403 </span><span class="lineCov">  643283248 :     unsigned char *_data = (unsigned char *)data;</span>
 <span class="lineNum">     404 </span>            : 
-<span class="lineNum">     405 </span><span class="lineCov">  321641624 :     hash = FNV_32_BASIS;</span>
-<span class="lineNum">     406 </span><span class="lineCov"> 3216416240 :     while (size-- &gt; 0)</span>
-<span class="lineNum">     407 </span><span class="lineCov"> 2573132992 :         hash = (hash * FNV_32_PRIME) ^ *_data++;</span>
+<span class="lineNum">     405 </span><span class="lineCov">  643283248 :     hash = FNV_32_BASIS;</span>
+<span class="lineNum">     406 </span><span class="lineCov"> 6432832480 :     while (size-- &gt; 0)</span>
+<span class="lineNum">     407 </span><span class="lineCov"> 5146265984 :         hash = (hash * FNV_32_PRIME) ^ *_data++;</span>
 <span class="lineNum">     408 </span>            : 
-<span class="lineNum">     409 </span><span class="lineCov">  321641624 :     return hash;</span>
+<span class="lineNum">     409 </span><span class="lineCov">  643283248 :     return hash;</span>
 <span class="lineNum">     410 </span>            : }
 <a name="411"><span class="lineNum">     411 </span>            : </a>
 <span class="lineNum">     412 </span>            : unsigned int
