@@ -59,11 +59,19 @@ print_heading() {
 }
 
 #### Main
+TAGS=`git tag`
+
+while getopts 't:' flag; do
+    case "${flag}" in
+        t) TAGS="${OPTARG}";;
+        *) error "Unexpected option ${flag}" ;;
+    esac
+done
+
 print_heading "Report Generation"
 
 cd ./effprog
 
-TAGS=`git tag`
 for tag in $TAGS
 do
     print_heading "Generating reports for $tag ..."
@@ -86,10 +94,7 @@ do
     git checkout master
     git merge ${tag}_report --strategy-option theirs
     git branch -d ${tag}_report
-    exit
 done
 
 print_heading "Cleaning up"
 make clean
-
-exit
