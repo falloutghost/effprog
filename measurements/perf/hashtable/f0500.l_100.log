@@ -1,0 +1,8 @@
+898 cells alive
+
+ Performance counter stats for './life 100':
+
+     1.247.321.147      cycles                                                      
+
+       0,393668544 seconds time elapsed
+
