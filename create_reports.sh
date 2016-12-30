@@ -104,6 +104,8 @@ do
     lcov_report $tag $tag
 
     # merge reports into master and delete report branch
+    git add .
+    git commit -a -m "${tag} reports"
     git checkout master
     git merge ${tag}_report --strategy-option theirs
     git branch -d ${tag}_report
