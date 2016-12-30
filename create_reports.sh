@@ -17,7 +17,7 @@ perf_report() {
 
     printf "perf report for $FILE with $GENERATIONS generations ...\n"
     mkdir measurements/perf/${TAG}
-    (perf stat -e cycles ./life $GENERATIONS < $FILE | sort > /dev/null) > measurements/perf/${TAG}/${FILE}_${GENERATIONS}.log 2>&1
+    (perf stat -e cycles:u -e cycles:k -e instructions:u -e branch-misses -e L1-dcache-load-misses:u -e L1-dcache-store-misses:u -e LLC-loads:u -e LLC-stores:u -e LLC-load-misses:u -e LLC-store-misses:u ./life $GENERATIONS < $FILE | sort > /dev/null) > measurements/perf/${TAG}/${FILE}_${GENERATIONS}.log 2>&1
 }
 
 oprofile_report() {

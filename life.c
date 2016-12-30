@@ -71,7 +71,7 @@ checkcell(long x, long y)
 {
   Cell *c;
   int n=0;
-  
+
   n += alive(x-1, y-1);
   n += alive(x-1, y+0);
   n += alive(x-1, y+1);
