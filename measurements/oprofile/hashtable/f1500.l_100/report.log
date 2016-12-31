@@ -1,0 +1,14 @@
+CPU: Intel Architectural Perfmon, speed 3400 MHz (estimated)
+Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with a unit mask of 0x00 (No unit mask) count 100000
+CPU_CLK_UNHALT...|
+  samples|      %|
+------------------
+    46046 100.000 life
+	CPU_CLK_UNHALT...|
+	  samples|      %|
+	------------------
+	    44386 96.3949 life
+	     1328  2.8841 libc-2.21.so
+	      324  0.7036 kallsyms
+	        5  0.0109 ld-2.21.so
+	        3  0.0065 kvm
