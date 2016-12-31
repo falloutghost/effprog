@@ -84,14 +84,14 @@ then
     exit
 fi
 
+#FIXME: automatic merge fails if old reports exist
+rm -R -f measurements
+git add .
+git commit -a -m "removed old reports"
+
 for tag in $TAGS
 do
     print_heading "Generating reports for $tag ..."
-
-    #FIXME: automatic merge fails if old reports exist
-    rm -R -f measurements
-    git add .
-    git commit -a -m "removed old reports"
 
     # switch to tag
     git checkout -b ${tag}_report $tag
