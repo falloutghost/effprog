@@ -79,7 +79,7 @@ printf "Tags: %s\n" "$TAGS"
 printf "\ncontinue? (Y/n): "
 read confirmation
 
-if [ $confirmation = "n" ]
+if [ "$confirmation" = "n" ]
 then
     exit
 fi
@@ -100,7 +100,13 @@ do
     printf "Cleaning up previous builds ...\n"
     make clean
     printf "Building ...\n"
-    make coverage
+
+    if [ "$tag" = "readlife" ]
+    then
+        make life
+    else
+        make coverage
+    fi
 
     # generate reports
     reports $GENERATIONS $tag
