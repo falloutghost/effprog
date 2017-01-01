@@ -1,16 +1,16 @@
 CC=gcc
-CFLAGS=-g -O2 -Wall -DNDEBUG
+CFLAGS=-g -O2 -Wall -std=gnu89 -DNDEBUG
 LDFLAGS=-g
 
 all: life
 
-life: life.c hash_table.c
-	$(CC) $(CFLAGS) -o life life.c hash_table.c
+life: life.c cell_table.c
+	$(CC) $(CFLAGS) -o life life.c cell_table.c
 
 clean:
 	rm -rf life *.o *.gch *.gcno *.gcda
 
 coverage:
 	$(CC) $(CFLAGS) --coverage -c -o life.o life.c
-	$(CC) $(CFLAGS) --coverage -c -o hash_table.o hash_table.c
-	$(CC) $(LDFLAGS) -lgcov --coverage life.o hash_table.o -o life
+	$(CC) $(CFLAGS) --coverage -c -o cell_table.o cell_table.c
+	$(CC) $(LDFLAGS) -lgcov --coverage life.o cell_table.o -o life

@@ -1,12 +1,17 @@
+#ifndef LIFE_H
+#define LIFE_H
+
 #include <stdio.h>
 
-typedef enum { ALIVE, DEAD } Status;
+typedef enum { DEAD, ALIVE } Status;
 
-typedef struct {
+typedef struct point2d {
     long x, y;
-} Point;
+} Point2D;
 
-typedef struct {
-    Point coordinates;
+typedef struct cell {
+    Point2D coordinates;
     Status status;
 } Cell;
+
+#endif
