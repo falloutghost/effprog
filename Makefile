@@ -11,7 +11,7 @@ life-cell_table: life-cell_table.c cell_table.c
 	$(CC) $(CFLAGS) -o life-cell_table life-cell_table.c cell_table.c
 
 clean:
-	rm -rf life-hash_table life-cell_table *.o *.gch *.gcno *.gcda
+	rm -rf life-hash_table life-cell_table *.o *.gch *.gcno *.gcda *.class
 
 coverage: coverage-life-hash_table coverage-life-cell_table
 

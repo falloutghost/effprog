@@ -1,6 +1,6 @@
 life
-life-hash_table
-life-cell_table
+./life-hash_table
+./life-cell_table
 *.o
 *.gch
 *.gcno
