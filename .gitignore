@@ -1,4 +1,6 @@
 life
+life-hash_table
+life-cell_table
 *.o
 *.gch
 *.gcno
@@ -6,6 +8,7 @@ life
 *.info
 readlife.tab.c
 .idea/
+cmake-build-debug/
 *.dSYM/
 *.class
 

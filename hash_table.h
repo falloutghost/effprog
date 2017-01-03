@@ -16,78 +16,105 @@ typedef void* hash_table_val_t;
 #define HASH_TABLE_KEY_NONE NULL
 #define HASH_TABLE_VAL_NONE NULL
 
+// TODO: implement auto growing + rehashing
+
 /**
- * Define types for the exposed structures.
+ * Represents a hash table entry.
  */
-typedef struct hash_table_elem hash_table_elem;
-typedef struct hash_table hash_table;
-typedef struct hash_table_iter hash_table_iter;
-typedef struct hash_table_entry hash_table_entry;
+typedef struct hash_table_entry {
+
+    hash_table_key_t key;
+
+    hash_table_val_t val;
+
+} HashTableEntry;
+
+/**
+ * Represents an element put into a bucket of the hash table.
+ */
+typedef struct hash_table_elem {
+    /**
+     * the hash table entry (containing key and value).
+     */
+    HashTableEntry entry;
+
+    /**
+     * The bucket the element resides in.
+     */
+    size_t bucket_idx;
+
+    /**
+     * a pointer to the next hash element in the bucket.
+     */
+    struct hash_table_elem *next;
+
+} HashTableElem;
 
 /**
  * Define signatures for hash and compare functions.
  */
 typedef unsigned int hash_function(const void *data);
 typedef int compare_function(const void *a, const void *b);
-typedef void map_function(hash_table_entry *entry);
-
-// TODO: implement auto growing + rehashing
+typedef void map_function(HashTableEntry *entry);
 
 /**
  * Represents a hash table.
  */
-struct hash_table {
+typedef struct hash_table {
+
     /**
      * the number of buckets.
      */
     size_t num_buckets;
+
     /**
      * the number of elements currently held by the hash table.
      */
     size_t num_elems;
+
     /**
      * the hash function to use.
      */
     hash_function *hash_func;
+
     /**
      * the compare function to use for finding elements in a bucket.
      */
     compare_function *cmp_func;
+
     /**
      * an array of buckets.
      */
-    hash_table_elem **buckets;
-};
+    HashTableElem **buckets;
+
+} HashTable;
 
 /**
  * Represents a hash table iterator.
  */
-struct hash_table_iter {
+typedef struct hash_table_iter {
+
     /**
      * the hash table for iterating over.
      */
-    hash_table *tbl;
+    HashTable *tbl;
+
     /**
      * the current bucket index.
      */
     size_t bucket_idx;
+
     /**
      * a pointer to the current element in the current bucket.
      */
-    hash_table_elem *current;
+    HashTableElem *current;
+
     /**
      * a pointer to the next element (may be in another bucket).
      */
-    hash_table_elem *next;
-};
+    HashTableElem *next;
 
-/**
- * Represents a hash table entry.
- */
-struct hash_table_entry {
-    hash_table_key_t key;
-    hash_table_val_t val;
-};
+} HashTableIter;
 
 /**
  * Creates a hash table.
@@ -96,7 +123,7 @@ struct hash_table_entry {
  * @param cmp_func the compare function used to compare two keys.
  * @return a pointer to a hash instance created on the heap; use hash_table_destroy() for cleanup!
  */
-hash_table *
+HashTable *
 hash_table_create(size_t bucket_count, hash_function *hash_func, compare_function *cmp_func);
 
 /**
@@ -107,7 +134,7 @@ hash_table_create(size_t bucket_count, hash_function *hash_func, compare_functio
  * @return an integer interpreted as true when the pair was successfully inserted, false otherwise.
  */
 int
-hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val);
+hash_table_put(HashTable *tbl, const hash_table_key_t key, const hash_table_val_t val);
 
 /**
  * Retrieves a value for a given key from the hash table instance.
@@ -116,7 +143,7 @@ hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val
  * @return the value, or NULL.
  */
 hash_table_val_t
-hash_table_get(hash_table *tbl, const hash_table_key_t key);
+hash_table_get(HashTable *tbl, const hash_table_key_t key);
 
 /**
  * Checks if the hash table contains a pair for a given key.
@@ -125,7 +152,7 @@ hash_table_get(hash_table *tbl, const hash_table_key_t key);
  * @return
  */
 int
-hash_table_contains(hash_table *tbl, const hash_table_key_t key);
+hash_table_contains(HashTable *tbl, const hash_table_key_t key);
 
 /**
  * Removes an entry from the hash table with given key.
@@ -134,7 +161,7 @@ hash_table_contains(hash_table *tbl, const hash_table_key_t key);
  * @return the value of the hash table entry or NULL if no entry with the given key was present.
  */
 hash_table_val_t
-hash_table_remove(hash_table *tbl, const hash_table_key_t key);
+hash_table_remove(HashTable *tbl, const hash_table_key_t key);
 
 /**
  * Applies a function to all elements present in the hash table.
@@ -142,7 +169,7 @@ hash_table_remove(hash_table *tbl, const hash_table_key_t key);
  * @param map_func the function to apply.
  */
 void
-hash_table_map(hash_table *tbl, map_function map_func);
+hash_table_map(HashTable *tbl, map_function map_func);
 
 /**
  * Returns the number of elements currently present in the hash table.
@@ -150,7 +177,7 @@ hash_table_map(hash_table *tbl, map_function map_func);
  * @return the number of hash table entries
  */
 size_t
-hash_table_size(hash_table *tbl);
+hash_table_size(HashTable *tbl);
 
 /**
  * Initializes an iterator instance for iterating over the entries of a hash table.
@@ -159,7 +186,7 @@ hash_table_size(hash_table *tbl);
  * @param iter a pointer to a allocated hash table iterator instance.
  */
 void
-hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter);
+hash_table_iter_init(HashTable *tbl, HashTableIter *iter);
 
 /**
  * Checks if the iterator can deliver another item.
@@ -167,14 +194,14 @@ hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter);
  * @return true if the iterator can deliver another item, false otherwise.
  */
 int
-hash_table_iterator_has_next(hash_table_iter *iter);
+hash_table_iter_has_next(HashTableIter *iter);
 
 /**
  * Lets the iterator point to the next hash table element.
  * @param iter a pointer to the hash table iterator instance.
  */
 void
-hash_table_iterator_next(hash_table_iter *iter);
+hash_table_iter_next(HashTableIter *iter);
 
 /**
  * Returns the current hash table element the iterator points to.
@@ -182,7 +209,7 @@ hash_table_iterator_next(hash_table_iter *iter);
  * @param out the hash table entry instance to populate.
  */
 void
-hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out);
+hash_table_iter_get(HashTableIter *iter, HashTableEntry *out);
 
 /**
  * Returns the key of the current hash table element the iterator points to.
@@ -190,7 +217,7 @@ hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out);
  * @return a pointer to the key value.
  */
 hash_table_key_t
-hash_table_iterator_get_key(hash_table_iter *iter);
+hash_table_iter_get_key(HashTableIter *iter);
 
 /**
  * Returns the value of the current hash table element the iterator points to.
@@ -198,21 +225,21 @@ hash_table_iterator_get_key(hash_table_iter *iter);
  * @return a pointer to the key value.
  */
 hash_table_val_t
-hash_table_iterator_get_value(hash_table_iter *iter);
+hash_table_iter_get_value(HashTableIter *iter);
 
 /**
  * Removes all entries currently present in the hash table.
  * @param tbl a pointer to the hash table instance.
  */
 void
-hash_table_clear(hash_table *tbl);
+hash_table_clear(HashTable *tbl);
 
 /**
  * Destroys a hash table created by hash_table_create().
  * @param tbl a pointer to the hash table instance.
  */
 void
-hash_table_destroy(hash_table *tbl);
+hash_table_destroy(HashTable *tbl);
 
 /**
  * Fowler-Noll-Vo 32-bit constants

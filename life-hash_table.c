@@ -8,18 +8,34 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "cell_table.h"
+#include "hash_table.h"
 #include "life.h"
 
-static CellTable *tbl_gen_current;
-static CellTable *tbl_gen_next;
+static HashTable *tbl_gen_current;
+static HashTable *tbl_gen_next;
 
-// used to free all cell instances put into the cell table(s).
-static void
-cell_table_gen_free(CellTableEntry *entry)
+// Calculates a FNV hash for a Point2D instance.
+static inline unsigned int
+hash_point2d(const void *p)
 {
-  free(entry->value);
-  entry->value = NULL;
+  return hash_bytes(p, sizeof(Point2D));
+}
+
+// Used to compare two Point2D instances.
+static inline int
+point2d_cmp(const void *a, const void *b)
+{
+  Point2D *p1 = (Point2D *)a, *p2 = (Point2D *)b;
+  int dx = p1->x - p2->x;
+  return (dx == 0) ? (p1->y - p2->y) : dx;
+}
+
+// Used to free all cell instances put into the cell table(s).
+static void
+hash_table_gen_free(HashTableEntry *entry)
+{
+  free(entry->val);
+  entry->val = NULL;
 }
 
 // Creates a cell instance, allocated on the heap.
@@ -43,7 +59,7 @@ long alive(long x, long y)
   Point2D p;
   p.x = x;
   p.y = y;
-  return cell_table_contains(tbl_gen_current, &p);
+  return hash_table_contains(tbl_gen_current, &p);
 }
 
 // Checks if a cell should be alive in the next generation;
@@ -71,7 +87,7 @@ checkcell(long x, long y)
       perror("create_cell");
       exit(1);
     }
-    cell_table_put(tbl_gen_next, &c->coordinates, c);
+    hash_table_put(tbl_gen_next, &c->coordinates, c);
   }
 }
 
@@ -79,16 +95,16 @@ checkcell(long x, long y)
 static void
 onegeneration()
 {
-  CellTable *tbl_gen_tmp;
-  CellTableIter iter;
+  HashTable *tbl_gen_tmp;
+  HashTableIter iter;
   Point2D *p;
   long x, y;
 
-  cell_table_iter_init(tbl_gen_current, &iter);
-  while (cell_table_iter_has_next(&iter)) {
-    cell_table_iter_next(&iter);
+  hash_table_iter_init(tbl_gen_current, &iter);
+  while (hash_table_iter_has_next(&iter)) {
+    hash_table_iter_next(&iter);
 
-    p = cell_table_iter_get_key(&iter);
+    p = hash_table_iter_get_key(&iter);
     x = p->x;
     y = p->y;
 
@@ -109,8 +125,8 @@ onegeneration()
   tbl_gen_next = tbl_gen_tmp;
 
   // clean next generation cell table
-  cell_table_map(tbl_gen_next, &cell_table_gen_free);
-  cell_table_clear(tbl_gen_next);
+  hash_table_map(tbl_gen_next, &hash_table_gen_free);
+  hash_table_clear(tbl_gen_next);
 }
 
 // Reads the initial state of the cells from an input file.
@@ -163,7 +179,7 @@ readlife(FILE *f)
       exit(1);
     }
 
-    cell_table_put(tbl_gen_current, &c->coordinates, c);
+    hash_table_put(tbl_gen_current, &c->coordinates, c);
 
     while (*s == ' ' || *s == '\n') s++;
   }
@@ -175,13 +191,13 @@ readlife(FILE *f)
 static void
 writelife(FILE *f)
 {
-  CellTableIter iter;
+  HashTableIter iter;
   Point2D *p;
 
-  cell_table_iter_init(tbl_gen_current, &iter);
-  while (cell_table_iter_has_next(&iter)) {
-    cell_table_iter_next(&iter);
-    p = cell_table_iter_get_key(&iter);
+  hash_table_iter_init(tbl_gen_current, &iter);
+  while (hash_table_iter_has_next(&iter)) {
+    hash_table_iter_next(&iter);
+    p = hash_table_iter_get_key(&iter);
     fprintf(f, "%ld %ld\n", p->x, p->y);
   }
 }
@@ -190,7 +206,7 @@ writelife(FILE *f)
 static inline size_t
 countcells()
 {
-  return cell_table_size(tbl_gen_current);
+  return hash_table_size(tbl_gen_current);
 }
 
 int main(int argc, char **argv)
@@ -213,8 +229,8 @@ int main(int argc, char **argv)
   }
 
   // create cell tables.
-  tbl_gen_current = cell_table_create(4096);
-  tbl_gen_next    = cell_table_create(4096);
+  tbl_gen_current = hash_table_create(2048, &hash_point2d, &point2d_cmp);
+  tbl_gen_next    = hash_table_create(2048, &hash_point2d, &point2d_cmp);
 
   // read in initial generation.
   readlife(stdin);
@@ -229,11 +245,11 @@ int main(int argc, char **argv)
   fprintf(stderr,"%zu cells alive\n", countcells());
 
   // free memory allocated for cells.
-  cell_table_map(tbl_gen_current, &cell_table_gen_free);
+  hash_table_map(tbl_gen_current, &hash_table_gen_free);
 
   // destroy cell tables.
-  cell_table_destroy(tbl_gen_current);
-  cell_table_destroy(tbl_gen_next);
+  hash_table_destroy(tbl_gen_current);
+  hash_table_destroy(tbl_gen_next);
 
   return 0;
 }

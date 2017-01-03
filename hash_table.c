@@ -6,24 +6,6 @@
 #include <assert.h>
 
 /**
- * Represents an element put into a bucket of the hash table.
- */
-struct hash_table_elem {
-    /**
-     * the hash table entry (containing key and value).
-     */
-    hash_table_entry entry;
-    /**
-     * The bucket the element resides in.
-     */
-    size_t bucket_idx;
-    /**
-     * a pointer to the next hash element in the bucket.
-     */
-    hash_table_elem *next;
-};
-
-/**
  * Checks if a number is a power of two.
  * @param n the number to check.
  * @return true if n is a power of two, false otherwise.
@@ -55,7 +37,7 @@ ceil_pow2(size_t n)
  * @return the bucket index.
  */
 static inline size_t
-bucket_idx(hash_table *tbl, const hash_table_key_t key)
+bucket_idx(HashTable *tbl, const hash_table_key_t key)
 {
     assert(is_pow2(tbl->num_buckets));
     return tbl->hash_func(key) & (tbl->num_buckets - 1);
@@ -69,13 +51,13 @@ bucket_idx(hash_table *tbl, const hash_table_key_t key)
  * @param bucket_idx the bucket index for the given key.
  * @return a newly created hash table element allocated on the heap, or NULL if heap allocation failed.
  */
-static inline hash_table_elem *
-create_elem(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val, size_t bucket_idx)
+static inline HashTableElem *
+create_elem(HashTable *tbl, const hash_table_key_t key, const hash_table_val_t val, size_t bucket_idx)
 {
-    hash_table_elem *new_elem;
+    HashTableElem *new_elem;
 
     // allocate heap memory
-    new_elem = (hash_table_elem *)malloc(sizeof(hash_table_elem));
+    new_elem = (HashTableElem *)malloc(sizeof(HashTableElem));
     if (new_elem == NULL) {
         return NULL;
     }
@@ -95,17 +77,21 @@ create_elem(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t 
  * @param key the key to look for
  * @return the hash table element or NULL if no element for the given key was found.
  */
-static inline hash_table_elem *
-find_elem(hash_table *tbl, const hash_table_key_t key)
+static inline HashTableElem *
+find_elem(HashTable *tbl, const hash_table_key_t key)
 {
-    hash_table_elem *e;
+    HashTableElem *e;
     size_t idx;
+    int cmp_val;
 
     idx = bucket_idx(tbl, key);
 
     for (e = tbl->buckets[idx]; e != NULL; e = e->next) {
-        if (tbl->cmp_func(e->entry.key, key) == 0) {
+        cmp_val = tbl->cmp_func(e->entry.key, key);
+        if (cmp_val == 0) {
             return e;
+        } else if (cmp_val > 0) {
+            break;
         }
     }
     return NULL;
@@ -118,8 +104,8 @@ find_elem(hash_table *tbl, const hash_table_key_t key)
  * @param current the current hash table element.
  * @return the next hash table element or NULL if there is no other element left.
  */
-static inline hash_table_elem *
-next_elem(hash_table *tbl, hash_table_elem *current, size_t bucket_idx)
+static inline HashTableElem *
+next_elem(HashTable *tbl, HashTableElem *current, size_t bucket_idx)
 {
     size_t idx;
 
@@ -141,8 +127,8 @@ next_elem(hash_table *tbl, hash_table_elem *current, size_t bucket_idx)
  * @param tbl a pointer to the hash table instance.
  * @return the first hash table element or NULL if no element is present.
  */
-static inline hash_table_elem *
-first_elem(hash_table *tbl)
+static inline HashTableElem *
+first_elem(HashTable *tbl)
 {
     if (hash_table_size(tbl) == 0) {
         return NULL;
@@ -155,10 +141,10 @@ first_elem(hash_table *tbl)
  * @param tbl the hash table.
  */
 static inline void
-free_elems(hash_table *tbl)
+free_elems(HashTable *tbl)
 {
     int i;
-    hash_table_elem *p, *e;
+    HashTableElem *p, *e;
 
     // free hash table elements first
     for (i = 0; i < tbl->num_buckets; ++i) {
@@ -172,22 +158,22 @@ free_elems(hash_table *tbl)
     }
 }
 
-hash_table *
+HashTable *
 hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function *cmp_func)
 {
-    hash_table *tbl;
+    HashTable *tbl;
 
     // round num. of buckets to next power of two (for efficiency reasons)
     num_buckets = ceil_pow2(num_buckets);
 
     // allocate hash table first
-    tbl = malloc(sizeof(hash_table));
+    tbl = malloc(sizeof(HashTable));
     if (tbl == NULL) {
         return NULL;
     }
 
     // allocate buckets
-    tbl->buckets = (hash_table_elem **)calloc(num_buckets, sizeof(hash_table_elem *));
+    tbl->buckets = (HashTableElem **)calloc(num_buckets, sizeof(HashTableElem *));
     if (tbl->buckets == NULL) {
         free(tbl);
         return NULL;
@@ -203,9 +189,9 @@ hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function
 }
 
 int
-hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val_t val)
+hash_table_put(HashTable *tbl, const hash_table_key_t key, const hash_table_val_t val)
 {
-    hash_table_elem *elem, *prev_elem, *new_elem;
+    HashTableElem *elem, *prev_elem, *new_elem;
     size_t idx;
     int cmp_val;
 
@@ -254,30 +240,32 @@ hash_table_put(hash_table *tbl, const hash_table_key_t key, const hash_table_val
 }
 
 hash_table_val_t
-hash_table_get(hash_table *tbl, const hash_table_key_t key)
+hash_table_get(HashTable *tbl, const hash_table_key_t key)
 {
-    hash_table_elem *e = find_elem(tbl, key);
+    HashTableElem *e = find_elem(tbl, key);
     return (e != NULL) ? e->entry.val : HASH_TABLE_VAL_NONE;
 }
 
 int
-hash_table_contains(hash_table *tbl, const hash_table_key_t key)
+hash_table_contains(HashTable *tbl, const hash_table_key_t key)
 {
     return find_elem(tbl, key) != NULL;
 }
 
 hash_table_val_t
-hash_table_remove(hash_table *tbl, const hash_table_key_t key)
+hash_table_remove(HashTable *tbl, const hash_table_key_t key)
 {
-    hash_table_elem *e, *p;
+    HashTableElem *e, *p;
     size_t idx;
     hash_table_val_t val;
+    int cmp_val;
 
     idx = bucket_idx(tbl, key);
 
     // find element
     for (e = tbl->buckets[idx], p = NULL; e != NULL; p =e, e = e->next) {
-        if (tbl->cmp_func(e->entry.key, key) == 0) {
+        cmp_val = tbl->cmp_func(e->entry.key, key);
+        if (cmp_val == 0) {
             val = e->entry.val;
 
             // remove element from hash table
@@ -293,33 +281,35 @@ hash_table_remove(hash_table *tbl, const hash_table_key_t key)
             free(e);
 
             return val;
+        } else if (cmp_val > 0) {
+            break;
         }
     }
     return HASH_TABLE_VAL_NONE;
 }
 
 void
-hash_table_map(hash_table *tbl, map_function map_func)
+hash_table_map(HashTable *tbl, map_function map_func)
 {
-    hash_table_iter iter;
-    hash_table_entry entry;
+    HashTableIter iter;
+    HashTableEntry entry;
 
-    hash_table_iterator_init(tbl, &iter);
-    while (hash_table_iterator_has_next(&iter)) {
-        hash_table_iterator_next(&iter);
-        hash_table_iterator_get(&iter, &entry);
+    hash_table_iter_init(tbl, &iter);
+    while (hash_table_iter_has_next(&iter)) {
+        hash_table_iter_next(&iter);
+        hash_table_iter_get(&iter, &entry);
         map_func(&entry);
     }
 }
 
 size_t
-hash_table_size(hash_table *tbl)
+hash_table_size(HashTable *tbl)
 {
     return tbl->num_elems;
 }
 
 void
-hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter)
+hash_table_iter_init(HashTable *tbl, HashTableIter *iter)
 {
     iter->tbl = tbl;
     iter->current = NULL;
@@ -328,13 +318,13 @@ hash_table_iterator_init(hash_table *tbl, hash_table_iter *iter)
 }
 
 int
-hash_table_iterator_has_next(hash_table_iter *iter)
+hash_table_iter_has_next(HashTableIter *iter)
 {
     return (iter->next != NULL);
 }
 
 void
-hash_table_iterator_next(hash_table_iter *iter)
+hash_table_iter_next(HashTableIter *iter)
 {
     if (iter->next == NULL) {
         return;
@@ -346,7 +336,7 @@ hash_table_iterator_next(hash_table_iter *iter)
 }
 
 void
-hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out)
+hash_table_iter_get(HashTableIter *iter, HashTableEntry *out)
 {
     if (iter->current == NULL) {
         out->key = NULL;
@@ -357,7 +347,7 @@ hash_table_iterator_get(hash_table_iter *iter, hash_table_entry *out)
 }
 
 hash_table_key_t
-hash_table_iterator_get_key(hash_table_iter *iter)
+hash_table_iter_get_key(HashTableIter *iter)
 {
     if (iter->current == NULL) {
         return NULL;
@@ -366,7 +356,7 @@ hash_table_iterator_get_key(hash_table_iter *iter)
 }
 
 hash_table_val_t
-hash_table_iterator_get_value(hash_table_iter *iter)
+hash_table_iter_get_value(HashTableIter *iter)
 {
     if (iter->current == NULL) {
         return NULL;
@@ -375,14 +365,14 @@ hash_table_iterator_get_value(hash_table_iter *iter)
 }
 
 void
-hash_table_clear(hash_table *tbl)
+hash_table_clear(HashTable *tbl)
 {
     free_elems(tbl);
     tbl->num_elems = 0;
 }
 
 void
-hash_table_destroy(hash_table *tbl)
+hash_table_destroy(HashTable *tbl)
 {
     // free hash table elements first
     free_elems(tbl);
