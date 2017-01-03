@@ -7,4 +7,5 @@ life
 readlife.tab.c
 .idea/
 *.dSYM/
+*.class
 
