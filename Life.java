@@ -2,6 +2,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Scanner;
 
 public class Life {
@@ -100,6 +101,12 @@ public class Life {
     private HashMap<Point2D, Cell> genNext;
 
     /**
+     * Hash set used to store already checked coordinates for the current generation.
+     */
+    HashSet<Point2D> checked;
+
+
+    /**
      * Constructor.
      */
     public Life() {
@@ -155,6 +162,9 @@ public class Life {
      * @param y the Y coordinate of the cell.
      */
     private void checkCell(long x, long y) {
+        Point2D coordinates = new Point2D(x, y);
+        if (checked.contains(coordinates)) return;
+
         int n = 0;
 
         n += alive(x-1, y-1);
@@ -167,8 +177,9 @@ public class Life {
         n += alive(x+1, y+1);
 
         if (n == 3 || (n == 2 && alive(x, y) == 1)) {
-            Cell c = new Cell(new Point2D(x, y), Status.ALIVE);
-            genNext.put(c.coordinates, c);
+            Cell c = new Cell(coordinates, Status.ALIVE);
+            genNext.put(coordinates, c);
+            checked.add(coordinates);
         }
     }
 
@@ -184,16 +195,18 @@ public class Life {
      * Advance the current generation.
      */
     private void oneGeneration() {
+        checked = new HashSet<Point2D>();
+
         for (Point2D p : genCurrent.keySet()) {
-            checkCell(p.x-1, p.y-1);
-            checkCell(p.x-1, p.y+0);
-            checkCell(p.x-1, p.y+1);
-            checkCell(p.x+0, p.y-1);
-            checkCell(p.x+0, p.y+0);
-            checkCell(p.x+0, p.y+1);
-            checkCell(p.x+1, p.y-1);
-            checkCell(p.x+1, p.y+0);
-            checkCell(p.x+1, p.y+1);
+            checkCell(p.x - 1, p.y - 1);
+            checkCell(p.x - 1, p.y + 0);
+            checkCell(p.x - 1, p.y + 1);
+            checkCell(p.x + 0, p.y - 1);
+            checkCell(p.x + 0, p.y + 0);
+            checkCell(p.x + 0, p.y + 1);
+            checkCell(p.x + 1, p.y - 1);
+            checkCell(p.x + 1, p.y + 0);
+            checkCell(p.x + 1, p.y + 1);
         }
 
         HashMap<Point2D, Cell> genTmp = genCurrent;
@@ -201,6 +214,7 @@ public class Life {
         genNext = genTmp;
 
         genNext.clear();
+        checked.clear();
     }
 
     /**
