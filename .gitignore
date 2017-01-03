@@ -11,4 +11,5 @@ readlife.tab.c
 cmake-build-debug/
 *.dSYM/
 *.class
-
+*.iml
+out
