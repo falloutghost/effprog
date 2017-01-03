@@ -131,17 +131,16 @@ create_elem(const Point2D *key, const Cell *value, size_t bucket_idx)
 /**
  * Look up a cell table element by key.
  * @param tbl the cell table.
- * @param key the key
+ * @param key the key.
+ * @param bucket_idx the bucket to search through.
  * @return the found cell table element or NULL if no element with given key is stored in the cell table.
  */
 static inline CellTableElem *
-find_elem(CellTable *tbl, const Point2D *key)
+find_elem(CellTable *tbl, const Point2D *key, size_t bucket_idx)
 {
     CellTableElem *head_elem, *elem;
-    size_t idx;
 
-    idx = bucket_idx(tbl, key);
-    head_elem = &tbl->buckets[idx];
+    head_elem = &tbl->buckets[bucket_idx];
 
     if (!head_elem->is_occpuied) {
         return NULL;
@@ -257,7 +256,7 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
     }
 
     // check if we have to update an already existing value
-    elem = find_elem(tbl, key);
+    elem = find_elem(tbl, key, idx);
     if (elem != NULL) {
         elem->entry.value = (Cell *)value;
         return 1;
@@ -279,14 +278,16 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
 int
 cell_table_contains(CellTable *tbl, const Point2D *key)
 {
-    CellTableElem *elem = find_elem(tbl, key);
+    size_t idx = bucket_idx(tbl, key);
+    CellTableElem *elem = find_elem(tbl, key, idx);
     return elem != NULL;
 }
 
 Cell *
 cell_table_get(CellTable *tbl, const Point2D *key)
 {
-    CellTableElem *elem = find_elem(tbl, key);
+    size_t idx = bucket_idx(tbl, key);
+    CellTableElem *elem = find_elem(tbl, key, idx);
     return (elem != NULL) ? elem->entry.value : NULL;
 }
 
@@ -298,7 +299,7 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
     Cell *value;
 
     idx = bucket_idx(tbl, key);
-    elem = find_elem(tbl, key);
+    elem = find_elem(tbl, key, idx);
     head_elem = &tbl->buckets[idx];
 
     if (elem == NULL) {

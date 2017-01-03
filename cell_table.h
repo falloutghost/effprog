@@ -55,7 +55,7 @@ typedef struct cell_table_elem {
     /**
      * unused member for memory alignment purposes.
      */
-    unsigned char padding[8];
+    unsigned char padding[4];
 
 } CellTableElem;
 

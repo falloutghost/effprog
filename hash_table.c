@@ -143,10 +143,9 @@ first_elem(HashTable *tbl)
 static inline void
 free_elems(HashTable *tbl)
 {
-    int i;
+    size_t i;
     HashTableElem *p, *e;
 
-    // free hash table elements first
     for (i = 0; i < tbl->num_buckets; ++i) {
         p = tbl->buckets[i];
         while (p != NULL) {
@@ -217,7 +216,6 @@ hash_table_put(HashTable *tbl, const hash_table_key_t key, const hash_table_val_
 
     // found equal element => replace value
     if (cmp_val == 0) {
-        // replace value of element
         elem->entry.val = val;
         return 1;
     }
@@ -232,7 +230,7 @@ hash_table_put(HashTable *tbl, const hash_table_key_t key, const hash_table_val_
         new_elem->next = tbl->buckets[idx];
         tbl->buckets[idx] = new_elem;
     } else {
-        new_elem->next = prev_elem->next;
+        new_elem->next = elem;
         prev_elem->next = new_elem;
     }
     tbl->num_elems++;

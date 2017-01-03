@@ -14,7 +14,7 @@
 static CellTable *tbl_gen_current;
 static CellTable *tbl_gen_next;
 
-// used to free all cell instances put into the cell table(s).
+// Used to free all cell instances put into the cell table(s).
 static void
 cell_table_gen_free(CellTableEntry *entry)
 {
