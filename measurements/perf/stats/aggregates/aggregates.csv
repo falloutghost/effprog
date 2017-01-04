@@ -1,0 +1,10 @@
+metric,avg,median
+cycles:k,5998444,4618250
+LLC-load-misses,24461,13014
+LLC-stores,568,564
+branch-misses,2787569,2782351
+LLC-loads,100415,88271
+instructions:u,433361726,435040629
+cycles:u,300807019,301050198
+L1-dcache-load-misses,1552275,1553059
+LLC-store-misses,383,305

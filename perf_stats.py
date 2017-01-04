@@ -33,7 +33,7 @@ def parse_file(filePath):
 # @param outputDir The directory where the generated csv files should be stored
 # @returns None
 """
-def do_perf_runs(generations = 100, inputFile = "f0.l", numberOfRuns = 5, outputDir = "measurements/perf/" + str(time.time())):
+def do_perf_runs(binary = "life-hash_table", generations = 100, inputFile = "f0.l", numberOfRuns = 5, outputDir = "measurements/perf/" + str(time.time())):
     if not os.path.exists(outputDir):
         os.makedirs(outputDir)
 
@@ -42,7 +42,7 @@ def do_perf_runs(generations = 100, inputFile = "f0.l", numberOfRuns = 5, output
 
     for i in range(0, numberOfRuns):
         print "Run %d..." % i
-        os.system("(perf stat -e cycles:u -e cycles:k -e instructions:u -e branch-misses -e L1-dcache-load-misses:u -e LLC-loads:u -e LLC-stores:u -e LLC-load-misses:u -e LLC-store-misses:u -x, ./life-hash_table " + str(generations) + " < " + inputFile + " | sort > /dev/null) > " + outputDir + "/run_" + str(i) + ".csv 2>&1")
+        os.system("(perf stat -e cycles:u -e cycles:k -e instructions:u -e branch-misses -e L1-dcache-load-misses:u -e LLC-loads:u -e LLC-stores:u -e LLC-load-misses:u -e LLC-store-misses:u -x, ./" + binary + " " + str(generations) + " < " + inputFile + " | sort > /dev/null) > " + outputDir + "/run_" + str(i) + ".csv 2>&1")
 
     print "\nDone.\n"
 
@@ -57,6 +57,9 @@ def collect_results(sourceDir):
     measurements = {}
 
     for resultsFile in os.listdir(sourceDir):
+        if os.path.isdir(sourceDir + "/" + resultsFile):
+            continue
+
         currentMeasurements = parse_file(sourceDir + "/" + resultsFile)
         for key in currentMeasurements.keys():
             if key in measurements:
@@ -121,20 +124,32 @@ def write_results(results, outputDirectory, fileName = "aggregates.csv"):
         writer.writerow({"metric": metric, "avg": aggregates["avg"], "median": aggregates["median"]})
 
 """
+# Cleans up previous builds and re-compiles the binary that should be evaluated.
+#
+# @param target The Makefile target to execute
+# @returns None
+"""
+def build(target):
+    os.system("make clean")
+    os.system("make " + target)
+
+"""
 # Returns a usage message for this script.
 # @returns the usage message for this scripts
 """
 def usage_message():
-    return "test.py -g <generations> -i <input-file> -r <runs> -o <output-directory>"
+    return "test.py -b <binary> -t <makefile-target> -g <generations> -i <input-file> -r <runs> -o <output-directory>"
 
 def main(argv):
+    binary = "life-hash_table"
     generations = 100
     inputFile = "f0.l"
     runs = 5
     outputDirectory = "measurements/perf/stats"
+    target = "life-hash_table"
 
     try:
-        opts, args = getopt.getopt(argv, "g:i:r:o:h", ["gens=", "input=", "runs=", "output=", "help"])
+        opts, args = getopt.getopt(argv, "b:g:i:r:o:t:h", ["binary=", "gens=", "input=", "runs=", "output=", "target", "help"])
     except getopt.GetoptError:
         print usage_message()
         sys.exit(2)
@@ -142,6 +157,8 @@ def main(argv):
         if opt in ("-h", "help"):
             print usage_message()
             sys.exit()
+        elif opt in ("-b", "binary="):
+            binary = args
         elif opt in ("-g", "gens="):
             generations = int(arg)
         elif opt in ("-i", "input="):
@@ -150,8 +167,11 @@ def main(argv):
             runs = int(arg)
         elif opt in ("-o", "output="):
             outputDirectory = arg
+        elif opt in ("-t", "target="):
+            target = arg
 
-    do_perf_runs(generations, inputFile, runs, outputDirectory)
+    build(target)
+    do_perf_runs(binary, generations, inputFile, runs, outputDirectory)
     results = aggregate_results(collect_results(outputDirectory))
     print results
     write_results(results, outputDirectory + "/aggregates", "aggregates.csv")
