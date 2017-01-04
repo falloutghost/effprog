@@ -1,8 +1,11 @@
 CC=gcc
-CFLAGS=-g -Wall -O2 -DNDEBUG -std=gnu89 -m32
+CFLAGS=-g -Wall -O2 -DNDEBUG -m32
 LDFLAGS=-g -m32
+JAVAC=javac
+CPPC=g++
+CPPFLAGS=-g -Wall -O2 -DNDEBUG -m32
 
-all: life-cell_table life-hash_table
+all: life-cell_table life-hash_table life-cpp life-java
 
 life-hash_table: life-hash_table.c life.h hash_table.c hash_table.h
 	$(CC) $(CFLAGS) -o life-hash_table life-hash_table.c hash_table.c
@@ -10,8 +13,16 @@ life-hash_table: life-hash_table.c life.h hash_table.c hash_table.h
 life-cell_table: life-cell_table.c life.h cell_table.c cell_table.h
 	$(CC) $(CFLAGS) -o life-cell_table life-cell_table.c cell_table.c
 
+life-java: Life.class
+
+Life.class: Life.java
+	$(JAVAC) Life.java
+
+life-cpp: life.cpp
+	$(CPPC) $(CPPFLAGS) -o life-cpp life.cpp
+
 clean:
-	rm -rf life-hash_table life-cell_table *.o *.gch *.gcno *.gcda *.class
+	rm -rf life-hash_table life-cell_table life-cpp *.o *.gch *.gcno *.gcda *.class *.dSYM
 
 coverage: coverage-life-hash_table coverage-life-cell_table
 

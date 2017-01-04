@@ -4,6 +4,9 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * Game-of-life implementation.
+ */
 public class Life {
 
     /**
@@ -111,7 +114,7 @@ public class Life {
      * Reads the initial cell generation from an input stream into the current generation map.
      * @param inStream the input stream.
      */
-    private void readLife(InputStream inStream) {
+    public void readLife(InputStream inStream) {
         Scanner scanner = new Scanner(inStream);
 
         // TODO: skip headers (see grammar in readlife.y)
@@ -131,12 +134,20 @@ public class Life {
      * Writes the current cell generation to an output stream.
      * @param outStream the output stream.
      */
-    private void writeLife(OutputStream outStream) {
+    public void writeLife(OutputStream outStream) {
         PrintWriter writer = new PrintWriter(outStream);
         for (Point2D p : genCurrent.keySet()) {
             writer.format("%d %d%n", p.x, p.y);
         }
         writer.flush();
+    }
+
+    /**
+     * Returns the number of alive cells in the current generation.
+     * @return the number of alive cells in the current generation.
+     */
+    public int countCells() {
+        return genCurrent.size();
     }
 
     /**
@@ -173,17 +184,9 @@ public class Life {
     }
 
     /**
-     * Returns the number of alive cells in the current generation.
-     * @return the number of alive cells in the current generation.
-     */
-    private int countCells() {
-        return genCurrent.size();
-    }
-
-    /**
      * Advance the current generation.
      */
-    private void oneGeneration() {
+    public void oneGeneration() {
         for (Point2D p : genCurrent.keySet()) {
             checkCell(p.x-1, p.y-1);
             checkCell(p.x-1, p.y+0);
