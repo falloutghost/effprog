@@ -2,6 +2,7 @@
 #include "cell_table.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
 /**
@@ -210,8 +211,72 @@ first_elem(CellTable *tbl)
     return NULL;
 }
 
+/**
+ * Calculates the current load factor.
+ * @return the current load factor
+ */
+static inline float
+current_load(CellTable *tbl)
+{
+    return (float)tbl->num_elems / tbl->num_buckets;
+}
+
+/**
+ * Rehashes the hash table with 2x no. of buckets.
+ * @param tbl the hash table to rehash
+ * @return true if the operation succeeded, false otherwise
+ */
+static int
+rehash(CellTable *tbl)
+{
+    CellTableElem *new_buckets;
+    size_t new_num_buckets, idx;
+    CellTableElem *elem, *elem_next, *bucket_head;
+
+    // allocate new bucket array
+    new_num_buckets = tbl->num_buckets * 2;
+    new_buckets = calloc(new_num_buckets, sizeof(CellTableElem));
+
+    // perform rehashing
+    elem = first_elem(tbl);
+    while (elem != NULL) {
+        elem_next = next_elem(tbl, elem);
+
+        // calculate new bucket index
+        idx = hash_point2d(&elem->entry.key) & (new_num_buckets - 1);
+
+        bucket_head = &new_buckets[idx];
+
+        // case 1: bucket is empty
+        if (!bucket_head->is_occpuied) {
+            write_entry(&bucket_head->entry, &elem->entry.key, elem->entry.value);
+            bucket_head->bucket_idx = idx;
+            bucket_head->is_occpuied = 1;
+            bucket_head->next = bucket_head;
+            bucket_head->prev = bucket_head;
+        }
+        // case 2: bucket is already occupied => collision
+        else {
+            // add element at the end of the list
+            elem->next = bucket_head;
+            elem->prev = bucket_head->prev;
+            elem->bucket_idx = idx;
+            bucket_head->prev->next = elem;
+            bucket_head->prev = elem;
+        }
+
+        elem = elem_next;
+    }
+
+    free(tbl->buckets);
+    tbl->num_buckets = new_num_buckets;
+    tbl->buckets = new_buckets;
+
+    return 1;
+}
+
 CellTable *
-cell_table_create(size_t num_buckets)
+cell_table_create(size_t num_buckets, float load_factor)
 {
     // allocate cell table first
     CellTable *tbl = malloc(sizeof(CellTable));
@@ -230,6 +295,7 @@ cell_table_create(size_t num_buckets)
     }
 
     tbl->num_buckets = num_buckets;
+    tbl->load_factor = load_factor;
     tbl->num_elems = 0;
 
     return tbl;
@@ -244,34 +310,40 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
     idx = bucket_idx(tbl, key);
     head_elem = &tbl->buckets[idx];
 
-    // handle empty bucket case
+    // case 1: bucket is empty
     if (!head_elem->is_occpuied) {
         write_entry(&head_elem->entry, key, value);
         head_elem->bucket_idx = idx;
         head_elem->is_occpuied = 1;
         head_elem->next = head_elem;
         head_elem->prev = head_elem;
-        tbl->num_elems++;
-        return 1;
+    }
+    // case 2: bucket already occupied => collision
+    else {
+        // check if we have to update an already existing value
+        elem = find_elem(tbl, key, idx);
+        if (elem != NULL) {
+            elem->entry.value = (Cell *)value;
+            return 1;
+        }
+
+        // add new element at the end of the list
+        new_elem = create_elem(key, value, idx);
+        if (new_elem == NULL) {
+            return 0;
+        }
+        new_elem->next = head_elem;
+        new_elem->prev = head_elem->prev;
+        head_elem->prev->next = new_elem;
+        head_elem->prev = new_elem;
     }
 
-    // check if we have to update an already existing value
-    elem = find_elem(tbl, key, idx);
-    if (elem != NULL) {
-        elem->entry.value = (Cell *)value;
-        return 1;
-    }
-
-    // target bucket is not empty => add new element at the end of the list
-    new_elem = create_elem(key, value, idx);
-    if (new_elem == NULL) {
-        return 0;
-    }
-    new_elem->next = head_elem;
-    new_elem->prev = head_elem->prev;
-    head_elem->prev->next = new_elem;
-    head_elem->prev = new_elem;
     tbl->num_elems++;
+
+    if (current_load(tbl) > tbl->load_factor) {
+        rehash(tbl);
+    }
+
     return 1;
 }
 

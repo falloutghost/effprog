@@ -1,9 +1,9 @@
 
 #include "hash_table.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 /**
  * Checks if a number is a power of two.
@@ -105,16 +105,18 @@ find_elem(HashTable *tbl, const hash_table_key_t key)
  * @return the next hash table element or NULL if there is no other element left.
  */
 static inline HashTableElem *
-next_elem(HashTable *tbl, HashTableElem *current, size_t bucket_idx)
+next_elem(HashTable *tbl, HashTableElem *current)
 {
     size_t idx;
 
+    assert(current != NULL);
+
     // case 1: bucket contains another element
-    if (current != NULL && current->next != NULL) {
+    if (current->next != NULL) {
         return current->next;
     }
     // case 2: look for next non-empty bucket
-    for (idx = bucket_idx + 1; idx < tbl->num_buckets; ++idx) {
+    for (idx = current->bucket_idx + 1; idx < tbl->num_buckets; ++idx) {
         if (tbl->buckets[idx] != NULL) {
             return tbl->buckets[idx];
         }
@@ -130,10 +132,21 @@ next_elem(HashTable *tbl, HashTableElem *current, size_t bucket_idx)
 static inline HashTableElem *
 first_elem(HashTable *tbl)
 {
+    size_t idx;
+
     if (hash_table_size(tbl) == 0) {
         return NULL;
     }
-    return next_elem(tbl, NULL, 0);
+
+    for (idx = 0; idx < tbl->num_buckets; ++idx) {
+        if (tbl->buckets[idx] != NULL) {
+            return tbl->buckets[idx];
+        }
+    }
+
+    /* NOTREACHED */
+    assert(true);
+    return NULL;
 }
 
 /**
@@ -157,8 +170,77 @@ free_elems(HashTable *tbl)
     }
 }
 
+/**
+ * Calculates the current load factor.
+ * @return the current load factor
+ */
+static inline float
+current_load(HashTable *tbl)
+{
+    return (float)tbl->num_elems / tbl->num_buckets;
+}
+
+/**
+ * Rehashes the hash table with 2x no. of buckets.
+ * @param tbl the hash table to rehash
+ * @return true if the operation succeeded, false otherwise
+ */
+static int
+rehash(HashTable *tbl)
+{
+    HashTableElem **new_buckets;
+    size_t new_num_buckets, idx;
+    HashTableElem *elem, *elem_next, *e, *p;
+    int cmp_val;
+
+    // allocate new bucket array
+    new_num_buckets = tbl->num_buckets * 2;
+    new_buckets = calloc(new_num_buckets, sizeof(HashTableElem *));
+    if (new_buckets == NULL) {
+        return 0;
+    }
+
+    // perform rehashing
+    elem = first_elem(tbl);
+    while (elem != NULL) {
+        elem_next = next_elem(tbl, elem);
+
+        // calculate new bucket index
+        idx = tbl->hash_func(elem->entry.key) & (new_num_buckets - 1);
+
+        // find correct position in new bucket
+        for (e = new_buckets[idx], p = NULL; e != NULL; p = e, e = e->next) {
+            cmp_val = tbl->cmp_func(e->entry.key, elem->entry.key);
+            assert(cmp_val != 0);
+            if (cmp_val > 0) {
+                break;
+            }
+        }
+
+        // insert element into new bucket
+        if (p == NULL) {
+            // insert as head
+            elem->next = new_buckets[idx];
+            elem->bucket_idx = idx;
+            new_buckets[idx] = elem;
+        } else {
+            elem->next = e;
+            elem->bucket_idx = idx;
+            p->next = elem;
+        }
+
+        elem = elem_next;
+    }
+
+    free(tbl->buckets);
+    tbl->num_buckets = new_num_buckets;
+    tbl->buckets = new_buckets;
+
+    return 1;
+}
+
 HashTable *
-hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function *cmp_func)
+hash_table_create(size_t num_buckets, float load_factor, hash_function *hash_func, compare_function *cmp_func)
 {
     HashTable *tbl;
 
@@ -172,7 +254,7 @@ hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function
     }
 
     // allocate buckets
-    tbl->buckets = (HashTableElem **)calloc(num_buckets, sizeof(HashTableElem *));
+    tbl->buckets = calloc(num_buckets, sizeof(HashTableElem *));
     if (tbl->buckets == NULL) {
         free(tbl);
         return NULL;
@@ -181,6 +263,7 @@ hash_table_create(size_t num_buckets, hash_function *hash_func, compare_function
     // set values for hash table struct members
     tbl->num_buckets = num_buckets;
     tbl->num_elems = 0;
+    tbl->load_factor = load_factor;
     tbl->hash_func = hash_func;
     tbl->cmp_func = cmp_func;
 
@@ -203,37 +286,44 @@ hash_table_put(HashTable *tbl, const hash_table_key_t key, const hash_table_val_
             return 0;
         }
         tbl->buckets[idx] = new_elem;
-        tbl->num_elems++;
-        return 1;
     }
-
     // target bucket is not empty => find correct position in bucket
-    for (elem = tbl->buckets[idx], prev_elem = NULL; elem != NULL; prev_elem = elem, elem = elem->next) {
-        cmp_val = tbl->cmp_func(elem->entry.key, key);
-        if (cmp_val >= 0)
-            break;
+    else {
+        // look for correct position in the bucket
+        for (elem = tbl->buckets[idx], prev_elem = NULL; elem != NULL; prev_elem = elem, elem = elem->next) {
+            cmp_val = tbl->cmp_func(elem->entry.key, key);
+            if (cmp_val >= 0)
+                break;
+        }
+
+        // found equal element => replace value
+        if (cmp_val == 0) {
+            elem->entry.val = val;
+            return 1;
+        }
+        // found greater element => insert new element into bucket before the found element
+        else {
+            new_elem = create_elem(tbl, key, val, idx);
+            if (new_elem == NULL) {
+                return 0;
+            }
+            if (prev_elem == NULL) {
+                // insert as head
+                new_elem->next = tbl->buckets[idx];
+                tbl->buckets[idx] = new_elem;
+            } else {
+                new_elem->next = elem;
+                prev_elem->next = new_elem;
+            }
+        }
     }
 
-    // found equal element => replace value
-    if (cmp_val == 0) {
-        elem->entry.val = val;
-        return 1;
-    }
-
-    // found greater element => insert new element into bucket before the found element
-    new_elem = create_elem(tbl, key, val, idx);
-    if (new_elem == NULL) {
-        return 0;
-    }
-    if (prev_elem == NULL) {
-        // insert as head
-        new_elem->next = tbl->buckets[idx];
-        tbl->buckets[idx] = new_elem;
-    } else {
-        new_elem->next = elem;
-        prev_elem->next = new_elem;
-    }
     tbl->num_elems++;
+
+    if (current_load(tbl) > tbl->load_factor) {
+        rehash(tbl);
+    }
+
     return 1;
 }
 
@@ -290,13 +380,13 @@ void
 hash_table_map(HashTable *tbl, map_function map_func)
 {
     HashTableIter iter;
-    HashTableEntry entry;
+    HashTableEntry *entry;
 
     hash_table_iter_init(tbl, &iter);
     while (hash_table_iter_has_next(&iter)) {
         hash_table_iter_next(&iter);
-        hash_table_iter_get(&iter, &entry);
-        map_func(&entry);
+        entry = hash_table_iter_get(&iter);
+        map_func(entry);
     }
 }
 
@@ -311,7 +401,6 @@ hash_table_iter_init(HashTable *tbl, HashTableIter *iter)
 {
     iter->tbl = tbl;
     iter->current = NULL;
-    iter->bucket_idx = 0;
     iter->next = first_elem(tbl);
 }
 
@@ -329,19 +418,13 @@ hash_table_iter_next(HashTableIter *iter)
     }
 
     iter->current = iter->next;
-    iter->bucket_idx = iter->next->bucket_idx;
-    iter->next = next_elem(iter->tbl, iter->current, iter->bucket_idx);
+    iter->next = next_elem(iter->tbl, iter->current);
 }
 
-void
-hash_table_iter_get(HashTableIter *iter, HashTableEntry *out)
+HashTableEntry *
+hash_table_iter_get(HashTableIter *iter)
 {
-    if (iter->current == NULL) {
-        out->key = NULL;
-        out->val = NULL;
-    }
-    out->key = iter->current->entry.key;
-    out->val = iter->current->entry.val;
+    return &iter->current->entry;
 }
 
 hash_table_key_t

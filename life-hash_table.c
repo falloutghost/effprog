@@ -229,8 +229,8 @@ int main(int argc, char **argv)
   }
 
   // create cell tables.
-  tbl_gen_current = hash_table_create(2048, &hash_point2d, &point2d_cmp);
-  tbl_gen_next    = hash_table_create(2048, &hash_point2d, &point2d_cmp);
+  tbl_gen_current = hash_table_create(1024, 0.75f, &hash_point2d, &point2d_cmp);
+  tbl_gen_next    = hash_table_create(1024, 0.75f, &hash_point2d, &point2d_cmp);
 
   // read in initial generation.
   readlife(stdin);

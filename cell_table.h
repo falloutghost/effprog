@@ -70,6 +70,11 @@ typedef struct cell_table {
     size_t num_buckets;
 
     /**
+     * a factor that controls growing + rehashing of the cell table.
+     */
+    float load_factor;
+
+    /**
      * The number of elements currently stored in the table.
      */
     size_t num_elems;
@@ -108,10 +113,11 @@ typedef void map_function(CellTableEntry *e);
 /**
  * Creates a cell table
  * @param num_buckets the number of buckets to allocate.
+ * @param load_factor a factor controlling growing / rehashing of the cell table.
  * @return a pointer to the cell table created on the heap.
  */
 CellTable *
-cell_table_create(size_t num_buckets);
+cell_table_create(size_t num_buckets, float load_factor);
 
 /**
  * Adds an entry to the cell table.

@@ -213,8 +213,8 @@ int main(int argc, char **argv)
   }
 
   // create cell tables.
-  tbl_gen_current = cell_table_create(2048);
-  tbl_gen_next    = cell_table_create(2048);
+  tbl_gen_current = cell_table_create(1024, 0.75f);
+  tbl_gen_next    = cell_table_create(1024, 0.75f);
 
   // read in initial generation.
   readlife(stdin);

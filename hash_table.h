@@ -16,8 +16,6 @@ typedef void* hash_table_val_t;
 #define HASH_TABLE_KEY_NONE NULL
 #define HASH_TABLE_VAL_NONE NULL
 
-// TODO: implement auto growing + rehashing
-
 /**
  * Represents a hash table entry.
  */
@@ -33,6 +31,7 @@ typedef struct hash_table_entry {
  * Represents an element put into a bucket of the hash table.
  */
 typedef struct hash_table_elem {
+
     /**
      * the hash table entry (containing key and value).
      */
@@ -68,6 +67,11 @@ typedef struct hash_table {
     size_t num_buckets;
 
     /**
+     * a factor that controls growing + rehashing of the hash table.
+     */
+    float load_factor;
+
+    /**
      * the number of elements currently held by the hash table.
      */
     size_t num_elems;
@@ -100,11 +104,6 @@ typedef struct hash_table_iter {
     HashTable *tbl;
 
     /**
-     * the current bucket index.
-     */
-    size_t bucket_idx;
-
-    /**
      * a pointer to the current element in the current bucket.
      */
     HashTableElem *current;
@@ -119,12 +118,13 @@ typedef struct hash_table_iter {
 /**
  * Creates a hash table.
  * @param num_buckets the (initial) number of buckets the hash table shall use.
+ * @param load_factor a factor controlling growing / rehashing of the hash table.
  * @param hash_func the hash function to use when adding / retrieving elements.
  * @param cmp_func the compare function used to compare two keys.
  * @return a pointer to a hash instance created on the heap; use hash_table_destroy() for cleanup!
  */
 HashTable *
-hash_table_create(size_t bucket_count, hash_function *hash_func, compare_function *cmp_func);
+hash_table_create(size_t num_buckets, float load_factor, hash_function *hash_func, compare_function *cmp_func);
 
 /**
  * Puts a key, value pair into the hash table.
@@ -206,10 +206,10 @@ hash_table_iter_next(HashTableIter *iter);
 /**
  * Returns the current hash table element the iterator points to.
  * @param iter a pointer to the hash table iterator instance.
- * @param out the hash table entry instance to populate.
+ * @return a pointer to the hash table entry.
  */
-void
-hash_table_iter_get(HashTableIter *iter, HashTableEntry *out);
+HashTableEntry *
+hash_table_iter_get(HashTableIter *iter);
 
 /**
  * Returns the key of the current hash table element the iterator points to.
