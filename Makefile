@@ -3,7 +3,7 @@ CFLAGS=-g -Wall -O2 -DNDEBUG -m32
 LDFLAGS=-g -m32
 JAVAC=javac
 CPPC=g++
-CPPFLAGS=-g -Wall -O2 -DNDEBUG -m32
+CPPFLAGS=-g -Wall -O2 -DNDEBUG -m32 -std=c++11
 
 all: life-cell_table life-hash_table life-cpp life-java
 

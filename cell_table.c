@@ -352,7 +352,7 @@ Cell *
 cell_table_remove(CellTable *tbl, const Point2D *key)
 {
     unsigned int hash_val;
-    size_t idx_orig, idx_found, idx_last_conflict, idx;
+    size_t idx_orig, idx;
     CellTableElem *elem_found, *elem_last_conflict, *e;
     Cell *found_val;
     int i = 0;
@@ -367,7 +367,6 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
     while (e->is_occpuied && i < tbl->num_buckets) {
         if (point2d_cmp(&e->entry.key, key) == 0) {
             elem_found = e;
-            idx_found = idx;
             break;
         }
 
@@ -394,7 +393,6 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
         // check if next bucket is a conflict with the found bucket
         if (idx_orig == bucket_idx(tbl, e->hash_val)) {
             elem_last_conflict = e;
-            idx_last_conflict = idx;
         }
 
         // advance to next bucket
