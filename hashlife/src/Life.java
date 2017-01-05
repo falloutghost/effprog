@@ -20,6 +20,10 @@ public class Life {
         }
     }
 
+    public void writeLife() {
+
+    }
+
     public static void main(String[] args) {
         // arguments checking.
         if (args.length != 1) {
@@ -38,7 +42,7 @@ public class Life {
             universe.runStep();
         }
 
-        System.out.println(universe);
+        System.err.println(universe.getPopulation() + " cells alive");
     }
 
 }

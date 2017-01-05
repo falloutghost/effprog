@@ -32,6 +32,15 @@ public class Universe {
 
         this.root = root.nextGeneration();
         this.generationCount++;
+        
+//        double stepSize = Math.pow(2.0, this.root.level - 2);
+//        System.out.println("stepSize: " + stepSize);
+//        this.root = this.root.nextGeneration();
+//        this.generationCount += stepSize;
+    }
+
+    public double getPopulation() {
+        return this.root.population;
     }
 
     public String toString() {
