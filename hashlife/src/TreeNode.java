@@ -198,19 +198,35 @@ public class TreeNode {
         if (population == 0) return this.northWest;
         if (level == 2) return this.slowSimulation();
 
-        TreeNode n00 = this.northWest.centeredSubnode(),
-                n01 = this.centeredHorizontal(this.northWest, this.northEast),
-                n02 = this.northEast.centeredSubnode(),
-                n10 = this.centeredVertical(this.northWest, this.southWest),
-                n11 = this.centeredSubSubnode(),
-                n12 = this.centeredVertical(this.northEast, this.southEast),
-                n20 = this.southWest.centeredSubnode(),
-                n21 = this.centeredHorizontal(this.southWest, this.southEast),
-                n22 = this.southEast.centeredSubnode() ;
-        return create(create(n00, n01, n10, n11).nextGeneration(),
-                create(n01, n02, n11, n12).nextGeneration(),
-                create(n10, n11, n20, n21).nextGeneration(),
-                create(n11, n12, n21, n22).nextGeneration());
+//        TreeNode n00 = this.northWest.centeredSubnode(),
+//                 n01 = this.centeredHorizontal(this.northWest, this.northEast),
+//                 n02 = this.northEast.centeredSubnode(),
+//                 n10 = this.centeredVertical(this.northWest, this.southWest),
+//                 n11 = this.centeredSubSubnode(),
+//                 n12 = this.centeredVertical(this.northEast, this.southEast),
+//                 n20 = this.southWest.centeredSubnode(),
+//                 n21 = this.centeredHorizontal(this.southWest, this.southEast),
+//                 n22 = this.southEast.centeredSubnode();
+//
+//        return create(create(n00, n01, n10, n11).nextGeneration(),
+//               create(n01, n02, n11, n12).nextGeneration(),
+//               create(n10, n11, n20, n21).nextGeneration(),
+//               create(n11, n12, n21, n22).nextGeneration());
+
+        TreeNode n00 = this.northWest.nextGeneration(),
+                 n01 = this.horizontalForward(this.northWest, this.northEast),
+                 n02 = this.northEast.nextGeneration(),
+                 n10 = this.verticalForward(this.northWest, this.southWest),
+                 n11 = this.centerForward(),
+                 n12 = this.verticalForward(this.northEast, this.southEast),
+                 n20 = this.southWest.nextGeneration(),
+                 n21 = this.horizontalForward(this.southWest, this.southEast),
+                 n22 = this.southEast.nextGeneration();
+
+        return result = create(create(n00, n01, n10, n11).nextGeneration(),
+                               create(n01, n02, n11, n12).nextGeneration(),
+                               create(n10, n11, n20, n21).nextGeneration(),
+                               create(n11, n12, n21, n22).nextGeneration());
     }
 
     public TreeNode getCanonical() {
