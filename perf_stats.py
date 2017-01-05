@@ -1,8 +1,9 @@
+#!/usr/bin/env python2
+
 import csv
 import sys
 import time
 import os
-from subprocess import call
 import getopt
 
 """

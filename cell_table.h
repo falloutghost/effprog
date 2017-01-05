@@ -33,9 +33,9 @@ typedef struct cell_table_elem {
     CellTableEntry entry;
 
     /**
-     * the index of the bucket the element resides in.
+     * The original hash value of the key.
      */
-    size_t bucket_idx;
+    unsigned int hash_val;
 
     /**
      * a flag indicating if the cell table entry is occupied.
@@ -43,21 +43,11 @@ typedef struct cell_table_elem {
     int is_occpuied;
 
     /**
-     * a pointer to the next cell table element.
-     */
-    struct cell_table_elem* next;
-
-    /**
-     * a pointer to the prev. cell table element.
-     */
-    struct cell_table_elem* prev;
-
-    /**
      * unused member for memory alignment purposes.
      */
-    unsigned char padding[4];
+    //unsigned char padding[4]; // TODO
 
-} CellTableElem;
+} CellTableElem; // TODO: rename to bucket
 
 /**
  * a type representing the cell table.
@@ -102,9 +92,19 @@ typedef struct cell_table_iter {
     CellTableElem *current;
 
     /**
+     * The bucket index of the element the iterator currently points at.
+     */
+    size_t current_idx;
+
+    /**
      * The cell table element the iterator points next.
      */
     CellTableElem *next;
+
+    /**
+     * The bucket index of the element the iterator points next.
+     */
+    size_t next_idx;
 
 } CellTableIter;
 

@@ -379,14 +379,9 @@ hash_table_remove(HashTable *tbl, const hash_table_key_t key)
 void
 hash_table_map(HashTable *tbl, map_function map_func)
 {
-    HashTableIter iter;
-    HashTableEntry *entry;
-
-    hash_table_iter_init(tbl, &iter);
-    while (hash_table_iter_has_next(&iter)) {
-        hash_table_iter_next(&iter);
-        entry = hash_table_iter_get(&iter);
-        map_func(entry);
+    HashTableElem* elem;
+    for (elem = first_elem(tbl); elem != NULL; elem = next_elem(tbl, elem)) {
+        map_func(&elem->entry);
     }
 }
 
