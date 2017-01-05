@@ -34,10 +34,11 @@ public class Life {
         // read in initial generation.
         life.readLife(System.in);
 
-        for (int i = 0;i<=generations;i++) {
-            System.out.println(universe);
+        for (int i = 0;i<generations;i++) {
             universe.runStep();
         }
+
+        System.out.println(universe);
     }
 
 }

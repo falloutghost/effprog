@@ -1,5 +1,3 @@
-import java.text.NumberFormat;
-
 public class Universe {
 
     private double generationCount;
