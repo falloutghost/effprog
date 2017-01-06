@@ -32,11 +32,21 @@ public class Universe {
 
         this.root = root.nextGeneration();
         this.generationCount++;
-        
-//        double stepSize = Math.pow(2.0, this.root.level - 2);
-//        System.out.println("stepSize: " + stepSize);
-//        this.root = this.root.nextGeneration();
-//        this.generationCount += stepSize;
+    }
+
+    public void runHashlifeStep() {
+        while (this.root.level < 3 ||
+                this.root.northWest.population != this.root.northWest.southEast.southEast.population ||
+                this.root.northEast.population != this.root.northEast.southWest.southWest.population ||
+                this.root.southWest.population != this.root.southWest.northEast.northEast.population ||
+                this.root.southEast.population != this.root.southEast.northWest.northWest.population) {
+            this.root = this.root.expandUniverse();
+        }
+
+        double stepSize = Math.pow(2.0, this.root.level - 2);
+        System.out.println("stepSize: " + stepSize);
+        this.root = this.root.nextHashlifeGeneration();
+        this.generationCount += stepSize;
     }
 
     public double getPopulation() {

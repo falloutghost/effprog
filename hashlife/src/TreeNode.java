@@ -69,7 +69,9 @@ public class TreeNode {
     }
 
     public TreeNode setBit(int x, int y) {
-        if (this.level == 0) return create(true);
+        if (this.level == 0) {
+            return create(true);
+        }
 
         int offset = 1 << (level - 2);
         if (x < 0) { // west
@@ -100,7 +102,9 @@ public class TreeNode {
     }
 
     public int getBit(int x, int y) {
-        if (level == 0) return this.alive ? 1 : 0;
+        if (level == 0) {
+            return this.alive ? 1 : 0;
+        }
         int offset = 1 << (level - 2);
         if (x < 0) {
             if (y < 0) {
@@ -182,15 +186,15 @@ public class TreeNode {
     }
 
     public TreeNode horizontalForward(TreeNode west, TreeNode east) {
-        return create(west.northEast, east.northWest, west.southEast, east.southWest).nextGeneration();
+        return create(west.northEast, east.northWest, west.southEast, east.southWest).nextHashlifeGeneration();
     }
 
     public TreeNode verticalForward(TreeNode north, TreeNode south) {
-        return create(north.southWest, north.southEast, south.northWest, south.northEast).nextGeneration();
+        return create(north.southWest, north.southEast, south.northWest, south.northEast).nextHashlifeGeneration();
     }
 
     public TreeNode centerForward() {
-        return create(this.northWest.southEast, this.northEast.southWest, this.southWest.northEast, this.southEast.northWest).nextGeneration();
+        return create(this.northWest.southEast, this.northEast.southWest, this.southWest.northEast, this.southEast.northWest).nextHashlifeGeneration();
     }
 
     public TreeNode nextGeneration() {
@@ -214,23 +218,29 @@ public class TreeNode {
                       create(n11, n12, n21, n22).nextGeneration());
 
         return this.result;
+    }
 
-//        TreeNode n00 = this.northWest.nextGeneration(),
-//                 n01 = this.horizontalForward(this.northWest, this.northEast),
-//                 n02 = this.northEast.nextGeneration(),
-//                 n10 = this.verticalForward(this.northWest, this.southWest),
-//                 n11 = this.centerForward(),
-//                 n12 = this.verticalForward(this.northEast, this.southEast),
-//                 n20 = this.southWest.nextGeneration(),
-//                 n21 = this.horizontalForward(this.southWest, this.southEast),
-//                 n22 = this.southEast.nextGeneration();
-//
-//        this.result = create(create(n00, n01, n10, n11).nextGeneration(),
-//                      create(n01, n02, n11, n12).nextGeneration(),
-//                      create(n10, n11, n20, n21).nextGeneration(),
-//                      create(n11, n12, n21, n22).nextGeneration());
-//
-//        return this.result;
+    public TreeNode nextHashlifeGeneration() {
+        if (this.result != null) return this.result;
+        if (this.population == 0) return this.northWest;
+        if (this.level == 2) return this.slowSimulation();
+
+        TreeNode n00 = this.northWest.nextHashlifeGeneration(),
+                 n01 = this.horizontalForward(this.northWest, this.northEast),
+                 n02 = this.northEast.nextHashlifeGeneration(),
+                 n10 = this.verticalForward(this.northWest, this.southWest),
+                 n11 = this.centerForward(),
+                 n12 = this.verticalForward(this.northEast, this.southEast),
+                 n20 = this.southWest.nextHashlifeGeneration(),
+                 n21 = this.horizontalForward(this.southWest, this.southEast),
+                 n22 = this.southEast.nextHashlifeGeneration();
+
+        this.result = create(create(n00, n01, n10, n11).nextHashlifeGeneration(),
+                      create(n01, n02, n11, n12).nextHashlifeGeneration(),
+                      create(n10, n11, n20, n21).nextHashlifeGeneration(),
+                      create(n11, n12, n21, n22).nextHashlifeGeneration());
+
+        return this.result;
     }
 
     public TreeNode getCanonical() {
