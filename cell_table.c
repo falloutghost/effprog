@@ -242,12 +242,12 @@ rehash(CellTable *tbl)
 
         // get index of new bucket
         new_idx = elem->hash_val & (new_num_buckets - 1);
-        new_elem = &new_buckets[idx];
+        new_elem = &new_buckets[new_idx];
 
         // find next free new bucket
         while (new_elem->is_occpuied) {
             new_idx = resolve_conflict(new_num_buckets, new_idx, &elem->entry.key);
-            new_elem = &new_buckets[idx];
+            new_elem = &new_buckets[new_idx];
         }
 
         // write new bucket
