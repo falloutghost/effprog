@@ -41,11 +41,11 @@ def parse_file(filePath):
 def do_perf_runs(runnable = "life-hash_table", generations = 100, inputFile = "f0.l", numberOfRuns = 5, outputDir = "measurements/perf/" + str(time.time())):
     if not os.path.exists(outputDir):
         os.makedirs(outputDir)
-    
+
     # add current directory prefix for binaries/scripts in current working dir
     if os.path.exists(runnable) and os.path.basename(runnable) == runnable:
         runnable = "./"+runnable
-    
+
     print "Collecting metrics for `%s %d < %s | sort`" % (runnable, generations, inputFile)
     print "%d runs, writing output to '%s'\n" % (numberOfRuns, outputDir)
 
@@ -127,7 +127,7 @@ def aggregate_results(measurements):
         aggregates[key]["sd"] = sd(measurements[key])
         aggregates[key]["min"] = min(measurements[key])
         aggregates[key]["max"] = max(measurements[key])
-        
+
     return aggregates
 
 """
@@ -155,12 +155,12 @@ def usage_message():
     return "test.py -p <runnable> -g <generations> -i <input-file> -r <runs> -o <output-directory>"
 
 def main(argv):
-    binary = "life-hash_table"
+    runnable = "life-hash_table"
     generations = 100
     inputFile = "f0.l"
     runs = 5
     outputDirectory = "measurements/perf/stats"
-    
+
     try:
         opts, args = getopt.getopt(argv, "p:g:i:r:o:h", ["runnable=", "gens=", "input=", "runs=", "output=", "help"])
     except getopt.GetoptError:
@@ -180,18 +180,18 @@ def main(argv):
             runs = int(arg)
         elif opt in ("-o", "output="):
             outputDirectory = arg
-    
+
     if (runs < 1):
         raise Exception("runs option argument must be at least 1")
-    
+
     do_perf_runs(runnable, generations, inputFile, runs, outputDirectory)
-    
+
     results = collect_results(outputDirectory)
-    
+
     if runs > 1:
         results = aggregate_results(results)
         write_results(results, outputDirectory + "/aggregates", "aggregates.csv")
-    
+
     print results
 
 if __name__ == "__main__":
