@@ -108,41 +108,72 @@ write_entry(CellTableEntry *e, const Point2D *key, const Cell *value)
 }
 
 /**
- * Resolves a conflict and returns the next bucket to try.
- * @param key the key of the entry we try to insert.
- * @param idx the bucket index that caused a conflict.
- * @param probe_cnt the number of prev. tries to resolve the conflict.
- * @param num_buckets the overall number of buckets.
- * @return a new bucket index to try.
+ * Swaps data of two cell table elements.
+ * @param elem_a the first cell table element
+ * @param elem_b the second cell table element
+ */
+static inline void
+swap_elems(CellTableElem *elem_a, CellTableElem *elem_b)
+{
+    CellTableElem tmp;
+    memcpy(&tmp, elem_a, sizeof(CellTableElem));
+    memcpy(elem_a, elem_b, sizeof(CellTableElem));
+    memcpy(elem_b, &tmp, sizeof(CellTableElem));
+}
+
+/**
+ * Returns the index of the next bucket to probe.
+ * @param idx the prev. checked index which caused a conflict
+ * @param num_buckets the total number of buckets
+ * @return the index of the next bucket to probe.
  */
 static inline size_t
-resolve_conflict(const Point2D *key, size_t idx, size_t probe_cnt, size_t num_buckets) {
+probe(size_t idx, size_t num_buckets) {
     return (idx + 1) & (num_buckets - 1); // linear probing
+}
+
+/**
+ * Calculates the probe distance for a cell table element, i.e. the distance between its desired and its actual bucket.
+ * @param elem the cell table element.
+ * @param idx the actual index.
+ * @param num_buckets the total number of buckets.
+ * @return the probe distance.
+ */
+static inline size_t
+probe_dist(CellTableElem *elem, size_t idx, size_t num_buckets)
+{
+    assert(is_pow2(num_buckets));
+    return (idx + num_buckets - bucket_idx(elem->hash_val, num_buckets)) & (num_buckets - 1);
 }
 
 /**
  * Look up a cell table element by key.
  * @param tbl the cell table.
  * @param key the key.
- * @param start_idx TODO
+ * @param start_idx the bucket index for starting the search.
  * @return the found cell table element or NULL if no element with given key is stored in the cell table.
  */
 static inline CellTableElem *
 find_elem(CellTable *tbl, const Point2D *key, size_t start_idx)
 {
-    size_t probe_cnt = 0;
+    size_t dist = 0;
     size_t idx = start_idx;
     CellTableElem *elem = &tbl->buckets[idx];
 
-    while (elem->is_occpuied && probe_cnt < tbl->num_buckets) {
+    while (elem->is_occpuied && dist < tbl->num_buckets) {
         if (point2d_cmp(&elem->entry.key, key) == 0) {
             return elem;
         }
 
-        // try next bucket according to conflict resolution strategy
-        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
+        // stop searching when we found an element with lower probe distance
+        if (probe_dist(elem, idx, tbl->num_buckets) < dist) {
+            break;
+        }
+
+        // try next bucket
+        idx = probe(idx, tbl->num_buckets);
         elem = &tbl->buckets[idx];
-        ++probe_cnt;
+        ++dist;
     }
 
     return NULL;
@@ -210,7 +241,7 @@ static int
 rehash(CellTable *tbl)
 {
     CellTableElem *new_buckets;
-    size_t new_num_buckets, idx, new_idx, probe_cnt;
+    size_t new_num_buckets, idx, new_idx, dist, dist_elem;
     CellTableElem *elem, *new_elem;
 
     // allocate new bucket array
@@ -233,18 +264,22 @@ rehash(CellTable *tbl)
         new_idx = bucket_idx(elem->hash_val, new_num_buckets);
         new_elem = &new_buckets[new_idx];
 
-        // find next free new bucket
-        probe_cnt = 0;
+        dist = 0;
         while (new_elem->is_occpuied) {
-            new_idx = resolve_conflict(&elem->entry.key, new_idx, probe_cnt, new_num_buckets);
+            // swap elements if probe difference is higher (robin hood hashing)
+            dist_elem = probe_dist(new_elem, new_idx, new_num_buckets);
+            if (dist_elem < dist) {
+                swap_elems(new_elem, elem);
+                dist = dist_elem;
+            }
+
+            new_idx = probe(new_idx, new_num_buckets);
             new_elem = &new_buckets[new_idx];
-            ++probe_cnt;
+            ++dist;
         }
 
         // write new bucket
-        write_entry(&new_elem->entry, &elem->entry.key, elem->entry.value);
-        new_elem->hash_val = elem->hash_val;
-        new_elem->is_occpuied = 1;
+        swap_elems(elem, new_elem);
     }
 
     free(tbl->buckets);
@@ -258,7 +293,6 @@ CellTable *
 cell_table_create(size_t num_buckets, float load_factor)
 {
     if (load_factor <= 0 || load_factor >= 1) {
-        // TODO: set errno
         return NULL;
     }
 
@@ -289,37 +323,45 @@ int
 cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
 {
     unsigned int hash_val;
-    size_t idx, probe_cnt;
-    CellTableElem *elem;
+    size_t idx, dist, dist_elem;
+    CellTableElem elem_insert, *elem;
 
+    hash_val = hash_point2d(key);
+    idx = bucket_idx(hash_val, tbl->num_buckets);
+
+    // check if we have to update an existing value first
+    elem = find_elem(tbl, key, idx);
+    if (elem != NULL) {
+        elem->entry.value = (Cell *)value;
+        return 1;
+    }
+
+    // grow and rehash if load factor reached defined threshold
     if (current_load(tbl) > tbl->load_factor && !rehash(tbl)) {
         return 0;
     }
 
-    hash_val = hash_point2d(key);
-    idx = bucket_idx(hash_val, tbl->num_buckets);
-    elem = &tbl->buckets[idx];
+    // write entry to insert
+    write_entry(&elem_insert.entry, key, value);
+    elem_insert.hash_val = hash_val;
+    elem_insert.is_occpuied = 1;
 
-    // find next free element
-    probe_cnt = 0;
+    elem = &tbl->buckets[idx];
+    dist = 0;
     while (elem->is_occpuied) {
-        // check if we have to update an already existing value
-        if (point2d_cmp(&elem->entry.key, key) == 0) {
-            elem->entry.value = (Cell *)value;
-            return 1;
+        // swap elements if probe difference is higher (robin hood hashing)
+        dist_elem = probe_dist(elem, idx, tbl->num_buckets);
+        if (dist_elem < dist) {
+            swap_elems(&elem_insert, elem);
+            dist = dist_elem;
         }
 
-        // try next bucket
-        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
+        idx = probe(idx, tbl->num_buckets);
         elem = &tbl->buckets[idx];
-        ++probe_cnt;
+        ++dist;
     }
 
-    // update bucket
-    write_entry(&elem->entry, key, value);
-    elem->hash_val = hash_val;
-    elem->is_occpuied = 1;
-
+    swap_elems(elem, &elem_insert);
     tbl->num_elems++;
 
     return 1;
@@ -344,6 +386,8 @@ cell_table_get(CellTable *tbl, const Point2D *key)
 Cell *
 cell_table_remove(CellTable *tbl, const Point2D *key)
 {
+    // implementation of normal linear probing ::
+    /*
     unsigned int hash_val;
     size_t idx_orig, idx, probe_cnt;
     CellTableElem *elem_found, *elem_last_conflict, *e;
@@ -363,7 +407,7 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
         }
 
         // try next bucket according to conflict resolution strategy
-        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
+        idx = probe(idx, tbl->num_buckets);
         e = &tbl->buckets[idx];
         ++probe_cnt;
     }
@@ -375,7 +419,7 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
     found_val = elem_found->entry.value;
 
     // skip found element
-    idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
+    idx = probe(idx, tbl->num_buckets);
     e = &tbl->buckets[idx];
     ++probe_cnt;
 
@@ -388,7 +432,7 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
         }
 
         // advance to next bucket
-        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
+        idx = probe(idx, tbl->num_buckets);
         e = &tbl->buckets[idx];
         ++probe_cnt;
     }
@@ -408,6 +452,9 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
     tbl->num_elems--;
 
     return found_val;
+     */
+    // TODO: implement for robin hood hashing, see http://codecapsule.com/2013/11/17/robin-hood-hashing-backward-shift-deletion/
+    return NULL;
 }
 
 void
@@ -421,8 +468,6 @@ cell_table_clear(CellTable *tbl)
         // mark bucket heads as free
         elem->is_occpuied = 0;
     }
-
-    // TODO: check if memset(0x0) for complete bucket field is faster
 
     tbl->num_elems = 0;
 }
