@@ -81,13 +81,13 @@ ceil_pow2(size_t n)
 }
 
 /**
- * TODO
- * @param tbl
- * @param hash_val
- * @return
+ * Returns the bucket index for a given hash value.
+ * @param tbl a pointer to the hash table instance as returned by cell_table_create().
+ * @param hash_val the hash value
+ * @return the bucket index.
  */
 static inline size_t
-bucket_idx(CellTable *tbl, unsigned int hash_val)
+bucket_idx_hash(CellTable *tbl, unsigned int hash_val)
 {
     assert(is_pow2(tbl->num_buckets));
     return hash_val & (tbl->num_buckets - 1);
@@ -95,14 +95,14 @@ bucket_idx(CellTable *tbl, unsigned int hash_val)
 
 /**
  * Returns the index of the bucket for a given key.
- * @param tbl a pointer to the hash table instance as returned by hash_table_create().
+ * @param tbl a pointer to the hash table instance as returned by cell_table_create().
  * @param key the key.
  * @return the bucket index.
  */
 static inline size_t
 bucket_idx_key(CellTable *tbl, const Point2D *key)
 {
-    return bucket_idx(tbl, hash_point2d(key));
+    return bucket_idx_hash(tbl, hash_point2d(key));
 }
 
 /**
@@ -120,14 +120,15 @@ write_entry(CellTableEntry *e, const Point2D *key, const Cell *value)
 }
 
 /**
- * Resolves a conflict.
- * @param num_buckets the current number of buckets in the hash table.
- * @param idx the conflicting index.
- * @param key the conflicting key.
- * @return the new index.
+ * Resolves a conflict and returns the next bucket to try.
+ * @param key the key of the entry we try to insert.
+ * @param idx the bucket index that caused a conflict.
+ * @param probe_cnt the number of prev. tries to resolve the conflict.
+ * @param num_buckets the overall number of buckets.
+ * @return a new bucket index to try.
  */
 static inline size_t
-resolve_conflict(size_t num_buckets, size_t idx, const Point2D *key) {
+resolve_conflict(const Point2D *key, size_t idx, size_t probe_cnt, size_t num_buckets) {
     return (idx + 1) & (num_buckets - 1); // linear probing
 }
 
@@ -141,19 +142,19 @@ resolve_conflict(size_t num_buckets, size_t idx, const Point2D *key) {
 static inline CellTableElem *
 find_elem(CellTable *tbl, const Point2D *key, size_t start_idx)
 {
-    int i = 0;
+    size_t probe_cnt = 0;
     size_t idx = start_idx;
     CellTableElem *elem = &tbl->buckets[idx];
 
-    while (elem->is_occpuied && i < tbl->num_buckets) {
+    while (elem->is_occpuied && probe_cnt < tbl->num_buckets) {
         if (point2d_cmp(&elem->entry.key, key) == 0) {
             return elem;
         }
 
         // try next bucket according to conflict resolution strategy
-        idx = resolve_conflict(tbl->num_buckets, idx, key);
+        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
         elem = &tbl->buckets[idx];
-        ++i;
+        ++probe_cnt;
     }
 
     return NULL;
@@ -221,7 +222,7 @@ static int
 rehash(CellTable *tbl)
 {
     CellTableElem *new_buckets;
-    size_t new_num_buckets, idx, new_idx;
+    size_t new_num_buckets, idx, new_idx, probe_cnt;
     CellTableElem *elem, *new_elem;
 
     // allocate new bucket array
@@ -245,9 +246,11 @@ rehash(CellTable *tbl)
         new_elem = &new_buckets[new_idx];
 
         // find next free new bucket
+        probe_cnt = 0;
         while (new_elem->is_occpuied) {
-            new_idx = resolve_conflict(new_num_buckets, new_idx, &elem->entry.key);
+            new_idx = resolve_conflict(&elem->entry.key, new_idx, probe_cnt, new_num_buckets);
             new_elem = &new_buckets[new_idx];
+            ++probe_cnt;
         }
 
         // write new bucket
@@ -298,7 +301,7 @@ int
 cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
 {
     unsigned int hash_val;
-    size_t idx;
+    size_t idx, probe_cnt;
     CellTableElem *elem;
 
     if (current_load(tbl) > tbl->load_factor && !rehash(tbl)) {
@@ -306,10 +309,11 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
     }
 
     hash_val = hash_point2d(key);
-    idx = bucket_idx(tbl, hash_val);
+    idx = bucket_idx_hash(tbl, hash_val);
     elem = &tbl->buckets[idx];
 
     // find next free element
+    probe_cnt = 0;
     while (elem->is_occpuied) {
         // check if we have to update an already existing value
         if (point2d_cmp(&elem->entry.key, key) == 0) {
@@ -318,8 +322,9 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
         }
 
         // try next bucket
-        idx = resolve_conflict(tbl->num_buckets, idx, key);
+        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
         elem = &tbl->buckets[idx];
+        ++probe_cnt;
     }
 
     // update bucket
@@ -352,28 +357,27 @@ Cell *
 cell_table_remove(CellTable *tbl, const Point2D *key)
 {
     unsigned int hash_val;
-    size_t idx_orig, idx;
+    size_t idx_orig, idx, probe_cnt;
     CellTableElem *elem_found, *elem_last_conflict, *e;
     Cell *found_val;
-    int i = 0;
 
     hash_val = hash_point2d(key);
-    idx = idx_orig = bucket_idx(tbl, hash_val);
+    idx = idx_orig = bucket_idx_hash(tbl, hash_val);
 
     // search for element to remove
     e =  &tbl->buckets[idx];
     elem_found = NULL;
-    i = 0;
-    while (e->is_occpuied && i < tbl->num_buckets) {
+    probe_cnt = 0;
+    while (e->is_occpuied && probe_cnt < tbl->num_buckets) {
         if (point2d_cmp(&e->entry.key, key) == 0) {
             elem_found = e;
             break;
         }
 
         // try next bucket according to conflict resolution strategy
-        idx = resolve_conflict(tbl->num_buckets, idx, key);
+        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
         e = &tbl->buckets[idx];
-        ++i;
+        ++probe_cnt;
     }
 
     if (elem_found == NULL) {
@@ -383,22 +387,22 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
     found_val = elem_found->entry.value;
 
     // skip found element
-    idx = resolve_conflict(tbl->num_buckets, idx, key);
+    idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
     e = &tbl->buckets[idx];
-    ++i;
+    ++probe_cnt;
 
     // check conflict chain and search for last conflicting element
     elem_last_conflict = NULL;
-    while (e->is_occpuied && i < tbl->num_buckets) {
+    while (e->is_occpuied && probe_cnt < tbl->num_buckets) {
         // check if next bucket is a conflict with the found bucket
-        if (idx_orig == bucket_idx(tbl, e->hash_val)) {
+        if (idx_orig == bucket_idx_hash(tbl, e->hash_val)) {
             elem_last_conflict = e;
         }
 
         // advance to next bucket
-        idx = resolve_conflict(tbl->num_buckets, idx, key);
+        idx = resolve_conflict(key, idx, probe_cnt, tbl->num_buckets);
         e = &tbl->buckets[idx];
-        ++i;
+        ++probe_cnt;
     }
 
     // case 1: found element did not cause a conflict or is the last element in the conflict chain
