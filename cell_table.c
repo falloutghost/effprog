@@ -87,22 +87,10 @@ ceil_pow2(size_t n)
  * @return the bucket index.
  */
 static inline size_t
-bucket_idx_hash(CellTable *tbl, unsigned int hash_val)
+bucket_idx(unsigned int hash_val, size_t num_buckets)
 {
-    assert(is_pow2(tbl->num_buckets));
-    return hash_val & (tbl->num_buckets - 1);
-}
-
-/**
- * Returns the index of the bucket for a given key.
- * @param tbl a pointer to the hash table instance as returned by cell_table_create().
- * @param key the key.
- * @return the bucket index.
- */
-static inline size_t
-bucket_idx_key(CellTable *tbl, const Point2D *key)
-{
-    return bucket_idx_hash(tbl, hash_point2d(key));
+    assert(is_pow2(num_buckets));
+    return hash_val & (num_buckets - 1);
 }
 
 /**
@@ -242,7 +230,7 @@ rehash(CellTable *tbl)
         }
 
         // get index of new bucket
-        new_idx = elem->hash_val & (new_num_buckets - 1);
+        new_idx = bucket_idx(elem->hash_val, new_num_buckets);
         new_elem = &new_buckets[new_idx];
 
         // find next free new bucket
@@ -309,7 +297,7 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
     }
 
     hash_val = hash_point2d(key);
-    idx = bucket_idx_hash(tbl, hash_val);
+    idx = bucket_idx(hash_val, tbl->num_buckets);
     elem = &tbl->buckets[idx];
 
     // find next free element
@@ -340,7 +328,7 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
 int
 cell_table_contains(CellTable *tbl, const Point2D *key)
 {
-    size_t idx = bucket_idx_key(tbl, key);
+    size_t idx = bucket_idx(hash_point2d(key), tbl->num_buckets);
     CellTableElem *elem = find_elem(tbl, key, idx);
     return elem != NULL;
 }
@@ -348,7 +336,7 @@ cell_table_contains(CellTable *tbl, const Point2D *key)
 Cell *
 cell_table_get(CellTable *tbl, const Point2D *key)
 {
-    size_t idx = bucket_idx_key(tbl, key);
+    size_t idx = bucket_idx(hash_point2d(key), tbl->num_buckets);
     CellTableElem *elem = find_elem(tbl, key, idx);
     return (elem != NULL) ? elem->entry.value : NULL;
 }
@@ -362,7 +350,7 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
     Cell *found_val;
 
     hash_val = hash_point2d(key);
-    idx = idx_orig = bucket_idx_hash(tbl, hash_val);
+    idx = idx_orig = bucket_idx(hash_val, tbl->num_buckets);
 
     // search for element to remove
     e =  &tbl->buckets[idx];
@@ -395,7 +383,7 @@ cell_table_remove(CellTable *tbl, const Point2D *key)
     elem_last_conflict = NULL;
     while (e->is_occpuied && probe_cnt < tbl->num_buckets) {
         // check if next bucket is a conflict with the found bucket
-        if (idx_orig == bucket_idx_hash(tbl, e->hash_val)) {
+        if (idx_orig == bucket_idx(e->hash_val, tbl->num_buckets)) {
             elem_last_conflict = e;
         }
 
