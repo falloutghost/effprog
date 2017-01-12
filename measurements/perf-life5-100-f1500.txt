@@ -1,0 +1,25 @@
+2715 cells alive
+2715 cells alive
+2715 cells alive
+2715 cells alive
+2715 cells alive
+2715 cells alive
+2715 cells alive
+2715 cells alive
+2715 cells alive
+2715 cells alive
+
+ Performance counter stats for 'sh -c ./life-cpp 100 < f1500.l | sort > /dev/null' (10 runs):
+
+     3,983,289,969      cycles:u                   ( +-  0.11% ) [37.57%]
+        56,453,409      cycles:k                   ( +-  2.26% ) [37.79%]
+     3,009,928,714      instructions:u            #    1.49  insns per cycle          ( +-  0.19% ) [38.08%]
+        45,052,625      branch-misses                                                 ( +-  0.81% ) [38.05%]
+         9,101,565      L1-dcache-load-misses                                         ( +-  0.18% ) [37.98%]
+         9,780,580      LLC-loads                                                     ( +-  0.25% ) [37.74%]
+         9,686,627      LLC-stores                                                    ( +-  0.26% ) [37.66%]
+           235,933      LLC-load-misses           #    2.41% of all LL-cache hits     ( +-  0.95% ) [37.52%]
+   <not supported>      LLC-store-misses         
+
+       1.449623283 seconds time elapsed                                          ( +-  0.11% )
+

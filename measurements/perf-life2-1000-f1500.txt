@@ -1,0 +1,25 @@
+4603 cells alive
+4603 cells alive
+4603 cells alive
+4603 cells alive
+4603 cells alive
+4603 cells alive
+4603 cells alive
+4603 cells alive
+4603 cells alive
+4603 cells alive
+
+ Performance counter stats for 'sh -c ./life-hash_table 1000 < f1500.l | sort > /dev/null' (10 runs):
+
+    51,395,712,340      cycles:u                   ( +-  0.92% ) [37.50%]
+       555,898,470      cycles:k                   ( +-  2.02% ) [37.53%]
+    41,119,732,452      instructions:u            #    1.58  insns per cycle          ( +-  0.03% ) [37.55%]
+       916,960,127      branch-misses                                                 ( +-  3.46% ) [37.56%]
+       324,941,226      L1-dcache-load-misses                                         ( +-  0.19% ) [37.54%]
+       336,282,284      LLC-loads                                                     ( +-  0.22% ) [37.53%]
+       336,659,274      LLC-stores                                                    ( +-  0.18% ) [37.51%]
+         9,471,011      LLC-load-misses           #    2.82% of all LL-cache hits     ( +-  0.40% ) [37.50%]
+   <not supported>      LLC-store-misses         
+
+      18.587876059 seconds time elapsed                                          ( +-  0.93% )
+

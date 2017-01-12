@@ -1,0 +1,25 @@
+841 cells alive
+841 cells alive
+841 cells alive
+841 cells alive
+841 cells alive
+841 cells alive
+841 cells alive
+841 cells alive
+841 cells alive
+841 cells alive
+
+ Performance counter stats for 'sh -c java Life 500 < f0.l | sort > /dev/null' (10 runs):
+
+     2,799,123,200      cycles:u                   ( +-  0.42% ) [37.97%]
+       199,432,660      cycles:k                   ( +-  1.94% ) [38.64%]
+     2,377,603,083      instructions:u            #    1.59  insns per cycle          ( +-  0.44% ) [39.41%]
+        40,819,492      branch-misses                                                 ( +-  0.68% ) [40.19%]
+        25,156,857      L1-dcache-load-misses                                         ( +-  0.30% ) [39.81%]
+        48,576,760      LLC-loads                                                     ( +-  0.64% ) [39.31%]
+        32,259,173      LLC-stores                                                    ( +-  0.94% ) [38.48%]
+         3,169,152      LLC-load-misses           #    6.52% of all LL-cache hits     ( +-  1.33% ) [38.13%]
+   <not supported>      LLC-store-misses         
+
+       0.915819595 seconds time elapsed                                          ( +-  0.31% )
+
