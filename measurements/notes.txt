@@ -19,7 +19,11 @@
   - too complex for this simple task
   - TODO: short performance comparison of readlife()
   
-* increased GCC optimization level (from 0 to 2)
+* increased GCC optimization level (from 1 to 2)
+  - TODO: short performance comparision between O1 and O2
+  
+* heavy use of inlining static helper functions
+  - TODO: small performance comparision
 
 * compile as 32-bit binary -- small performance improvements on our 64-bit machine (no explanation for that :-/)
   - TODO: short performance comparison of 32-bit vs. 64-bit versions
@@ -41,18 +45,19 @@
 
 * possible differences: auto growing / rehashing, other conflict handling (open addressing instead of bucket chaining)
 
-## life6+7 -- life-hash_table.c & life-cell_table.c @ TODO ##
+## life6+7 -- life-hash_table.c & life-cell_table.c @ f1d12df8f96b66974b3dc9609501b8ee5fd8cde3 ##
 
 * auto-growing / rehashing when a certain load factor is reached
 
-## life8 -- life-cell_table.c @ TODO ##
+## life8 -- life-cell_table.c @ 45de6184c93ff2dd9686b0a9ddce70abcdf074a1 ##
 
 * use linear probing instead of bucket chaining => cache friendly
 
-## life9 -- life-cell_table.c @ TODO ##
+## life9 -- life-cell_table.c @ a00f9dcabd9b384729ddde891901d895dcc6c445 ##
 
 * use robin hood hashing
   - TODO: paper reference
 
 ## life10 -- Life.java hashlife @ TODO ##
 
+TODO

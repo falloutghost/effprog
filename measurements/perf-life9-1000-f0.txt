@@ -1,0 +1,25 @@
+1665 cells alive
+1665 cells alive
+1665 cells alive
+1665 cells alive
+1665 cells alive
+1665 cells alive
+1665 cells alive
+1665 cells alive
+1665 cells alive
+1665 cells alive
+
+ Performance counter stats for 'sh -c ./life-cell_table 1000 < f0.l | sort > /dev/null' (10 runs):
+
+     8,179,508,770      cycles:u                   ( +-  0.42% ) [37.61%]
+       113,667,030      cycles:k                   ( +-  4.27% ) [37.71%]
+     9,740,331,386      instructions:u            #    2.35  insns per cycle          ( +-  0.06% ) [37.82%]
+       140,004,721      branch-misses                                                 ( +-  1.67% ) [37.65%]
+        15,244,609      L1-dcache-load-misses                                         ( +-  0.16% ) [37.68%]
+        16,689,072      LLC-loads                                                     ( +-  0.36% ) [37.60%]
+        15,666,986      LLC-stores                                                    ( +-  0.17% ) [37.51%]
+           402,548      LLC-load-misses           #    2.41% of all LL-cache hits     ( +-  0.73% ) [37.43%]
+   <not supported>      LLC-store-misses         
+
+       2.972452926 seconds time elapsed                                          ( +-  0.42% )
+
