@@ -279,7 +279,7 @@ rehash(CellTable *tbl)
         }
 
         // write new bucket
-        swap_elems(elem, new_elem);
+        memcpy(new_elem, elem, sizeof(CellTableElem));
     }
 
     free(tbl->buckets);
@@ -361,7 +361,9 @@ cell_table_put(CellTable *tbl, const Point2D *key, const Cell *value)
         ++dist;
     }
 
-    swap_elems(elem, &elem_insert);
+    // write empty bucket
+    memcpy(elem, &elem_insert, sizeof(CellTableElem));
+
     tbl->num_elems++;
 
     return 1;
