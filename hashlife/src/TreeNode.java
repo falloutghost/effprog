@@ -18,6 +18,12 @@ public class TreeNode {
 
     protected TreeNode result;
 
+    static int size = 0;
+
+    public static int getSize() {
+        return size;
+    }
+
     /**
      * Constructor for a leaf node.
      *
@@ -128,6 +134,7 @@ public class TreeNode {
     }
 
     public TreeNode expandUniverse() {
+        size = (int) Math.pow(2, this.level - 1);
         TreeNode border = this.createEmptyTree(this.level - 1);
         return create(create(border, border, border, this.northWest),
                             create(border, border, this.northEast, border),

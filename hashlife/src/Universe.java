@@ -53,6 +53,37 @@ public class Universe {
         return this.root.population;
     }
 
+//    public int getBit(int x, int y) {
+//        if (level == 0) {
+//            return this.alive ? 1 : 0;
+//        }
+//        int offset = 1 << (level - 2);
+//        if (x < 0) {
+//            if (y < 0) {
+//                return this.northWest.getBit(x + offset, y + offset);
+//            } else {
+//                return this.southWest.getBit(x + offset, y - offset);
+//            }
+//        } else {
+//            if (y < 0) {
+//                return this.northEast.getBit(x - offset, y + offset);
+//            } else {
+//                return this.southEast.getBit(x - offset, y - offset);
+//            }
+//        }
+//    }
+
+    public void traverse() {
+        for (int x = 0;x<TreeNode.getSize();x++) {
+            for (int y = 0;y<TreeNode.getSize();y++) {
+                int bit = this.root.getBit(x, y);
+                if (bit == 1) {
+                    System.out.format("%1$d %2$d\n", x, y);
+                }
+            }
+        }
+    }
+
     public String toString() {
         return "Generation: " + this.generationCount + "\n" +
                 "Population: " + this.root.population;

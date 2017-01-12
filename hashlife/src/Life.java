@@ -43,6 +43,7 @@ public class Life {
         }
 
         System.err.println(universe.getPopulation() + " cells alive");
+        universe.traverse();
     }
 
 }
