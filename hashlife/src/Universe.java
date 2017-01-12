@@ -74,8 +74,9 @@ public class Universe {
 //    }
 
     public void traverse() {
-        for (int x = 0;x<TreeNode.getSize();x++) {
-            for (int y = 0;y<TreeNode.getSize();y++) {
+        int size = TreeNode.getSize();
+        for (int x = -size;x<size;x++) {
+            for (int y = -size;y<size;y++) {
                 int bit = this.root.getBit(x, y);
                 if (bit == 1) {
                     System.out.format("%1$d %2$d\n", x, y);
