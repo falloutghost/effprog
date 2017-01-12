@@ -1,0 +1,15 @@
+
+ Performance counter stats for 'sh -c ./life 100 < f0.l | sort > /dev/null' (1000 runs):
+
+         1,815,483      cycles:u                   ( +-  1.12% )
+         4,854,043      cycles:k                   ( +-  0.14% )
+         1,318,208      instructions:u            #    0.40  insns per cycle          ( +-  0.00% )
+             9,421      branch-misses                                                 ( +-  5.26% ) [ 0.00%]
+     <not counted>      L1-dcache-load-misses    
+     <not counted>      LLC-loads                
+     <not counted>      LLC-stores               
+     <not counted>      LLC-load-misses          
+   <not supported>      LLC-store-misses         
+
+       0.002180732 seconds time elapsed                                          ( +-  0.12% )
+

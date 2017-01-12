@@ -17,16 +17,19 @@
 
 * removed bison/flex dependency too
   - too complex for this simple task
-  - TODO: short performance comparison of readlife()
+  - +43,9% better runtime performance on biggest file
+  - +0,8% better runtime performance on smallest file
+  - measurements incl. data structure manipulation though, so difference may be even bigger for large file
+    * linked list vs. hash table without resizing/rehashing
   
 * increased GCC optimization level (from 1 to 2)
-  - TODO: short performance comparision between O1 and O2
+  - +2,4% better runtime performance (see measurements/O)
   
-* heavy use of inlining static helper functions
-  - TODO: small performance comparision
+* indicate GCC to inline static helper functions
+  - +2.8% better runtime performance (see measurements/inline)
 
 * compile as 32-bit binary -- small performance improvements on our 64-bit machine (no explanation for that :-/)
-  - TODO: short performance comparison of 32-bit vs. 64-bit versions
+  - +24,7% better runtime performance (see measurements/x86_64)
 
 ## life3 -- life-cell_table.c @ 769acfbfdd37eadebe3ffcead986062649f855c1 ##
 
@@ -55,8 +58,7 @@
 
 ## life9 -- life-cell_table.c @ a00f9dcabd9b384729ddde891901d895dcc6c445 ##
 
-* use robin hood hashing
-  - TODO: paper reference
+* use robin hood hashing -- https://cs.uwaterloo.ca/research/tr/1986/CS-86-14.pdf
 
 ## life10 -- Life.java hashlife @ TODO ##
 

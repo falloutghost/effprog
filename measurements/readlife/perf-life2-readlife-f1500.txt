@@ -1,0 +1,15 @@
+
+ Performance counter stats for 'sh -c ./life-hash_table 100 < f1500.l | sort > /dev/null' (1000 runs):
+
+         2,345,805      cycles:u                   ( +-  1.43% )
+         5,247,233      cycles:k                   ( +-  0.15% )
+         3,038,317      instructions:u            #    0.80  insns per cycle          ( +-  0.00% )
+            12,075      branch-misses                                                 ( +-  3.73% ) [ 0.00%]
+     <not counted>      L1-dcache-load-misses    
+     <not counted>      LLC-loads                
+     <not counted>      LLC-stores               
+     <not counted>      LLC-load-misses          
+   <not supported>      LLC-store-misses         
+
+       0.002537209 seconds time elapsed                                          ( +-  0.19% )
+
