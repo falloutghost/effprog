@@ -45,7 +45,7 @@ typedef struct cell_table_elem {
     /**
      * unused member for memory alignment purposes.
      */
-    //unsigned char padding[4]; // TODO
+    unsigned char padding[12];
 
 } CellTableElem; // TODO: rename to bucket
 

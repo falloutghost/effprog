@@ -1,0 +1,63 @@
+# EFFPROG #
+
+## life1 -- life.c @ fc7bc117b24f3b88d3d57f312c957a927b6b9351 ##
+
+* initial version
+  - uses flex/bison to read input file
+  - uses linked list to manage alive cells => extensive overhead on lookup
+
+## life2 -- life-hash_table.c @ 769acfbfdd37eadebe3ffcead986062649f855c1 ##
+
+* use hash table instead of (singly) linked list for manage alive cells, whereas
+  - keys are not stored in buckets => additional level of indirection => not cache friendly
+  - bucket chaining on conflict => not cache friendly
+  - bucket chains are maintained s.t. they are sorted by keys
+    => allows early out when lookup for elements in a bucket chain
+  - no auto-growing/rehashing yet => degeneration possible
+
+* removed bison/flex dependency too
+  - too complex for this simple task
+  - TODO: short performance comparison of readlife()
+  
+* increased GCC optimization level (from 1 to 2)
+  - TODO: short performance comparision between O1 and O2
+  
+* heavy use of inlining static helper functions
+  - TODO: small performance comparision
+
+* compile as 32-bit binary -- small performance improvements on our 64-bit machine (no explanation for that :-/)
+  - TODO: short performance comparison of 32-bit vs. 64-bit versions
+
+## life3 -- life-cell_table.c @ 769acfbfdd37eadebe3ffcead986062649f855c1 ##
+
+* implemented custom hash table implementation, whereas
+  - keys are stored in buckets => no additional level of indirection for key comparison => cache friendly
+  - still bucket chaining on conflict => cache miss on conflict
+  - bucket chains are no longer sorted
+    - bucket chains rather short => not much value
+  - no auto-growing/rehashing yet => degeneration still possible 
+
+## life4+5 -- Life.java & life.cpp @ b244348fed4995961a1166539e611f90a5fe7d3e ##
+
+* same approach as life.c, but with hash table implementations that come with Java/C++
+  - Java: HashSet
+  - C++ (11): unordered_map
+
+* possible differences: auto growing / rehashing, other conflict handling (open addressing instead of bucket chaining)
+
+## life6+7 -- life-hash_table.c & life-cell_table.c @ f1d12df8f96b66974b3dc9609501b8ee5fd8cde3 ##
+
+* auto-growing / rehashing when a certain load factor is reached
+
+## life8 -- life-cell_table.c @ 45de6184c93ff2dd9686b0a9ddce70abcdf074a1 ##
+
+* use linear probing instead of bucket chaining => cache friendly
+
+## life9 -- life-cell_table.c @ a00f9dcabd9b384729ddde891901d895dcc6c445 ##
+
+* use robin hood hashing
+  - TODO: paper reference
+
+## life10 -- Life.java hashlife @ TODO ##
+
+TODO

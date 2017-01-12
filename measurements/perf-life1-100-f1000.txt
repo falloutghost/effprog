@@ -1,0 +1,25 @@
+1845 cells alive
+1845 cells alive
+1845 cells alive
+1845 cells alive
+1845 cells alive
+1845 cells alive
+1845 cells alive
+1845 cells alive
+1845 cells alive
+1845 cells alive
+
+ Performance counter stats for 'sh -c ./life 100 < f1000.l | sort > /dev/null' (10 runs):
+
+    92,602,117,646      cycles:u                   ( +-  0.02% ) [37.51%]
+       321,570,049      cycles:k                   ( +-  0.24% ) [37.52%]
+    83,706,244,401      instructions:u            #    1.80  insns per cycle          ( +-  0.02% ) [37.53%]
+        61,167,099      branch-misses                                                 ( +-  0.19% ) [37.51%]
+     2,027,319,468      L1-dcache-load-misses                                         ( +-  0.08% ) [37.51%]
+     2,034,607,924      LLC-loads                                                     ( +-  0.10% ) [37.50%]
+     2,025,142,935      LLC-stores                                                    ( +-  0.10% ) [37.50%]
+             3,107      LLC-load-misses           #    0.00% of all LL-cache hits     ( +- 45.11% ) [37.50%]
+   <not supported>      LLC-store-misses         
+
+      33.215240591 seconds time elapsed                                          ( +-  0.01% )
+
